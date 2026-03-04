@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.4">
+  <diagram name="SmartCloset ER Diagram" id="ER_1">
+    <mxGraphModel dx="1018" dy="1793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ent_user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=center;spacingLeft=5;" value="User" vertex="1">
+          <mxGeometry height="100" width="120" x="270" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_owns" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="OWNS&#xa;(1:N)" vertex="1">
+          <mxGeometry height="70" width="100" x="80" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_item" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=center;spacingLeft=5;" value="Clothing Item" vertex="1">
+          <mxGeometry height="130" width="180" x="40" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_contains" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CONTAINS&#xa;(M:N)" vertex="1">
+          <mxGeometry height="70" width="100" x="280" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_outfit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;align=center;spacingLeft=5;" value="Outfit combinations" vertex="1">
+          <mxGeometry height="90" width="180" x="450" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_creates" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CREATES&#xa;(1:N)" vertex="1">
+          <mxGeometry height="70" width="100" x="490" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_logged" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="LOGGED_IN&#xa;(1:N)" vertex="1">
+          <mxGeometry height="70" width="100" x="490" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_history" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;align=center;spacingLeft=5;" value="History Log" vertex="1">
+          <mxGeometry height="120" width="180" x="240" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_pref" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;align=center;spacingLeft=5;" value="User Preferences" vertex="1">
+          <mxGeometry height="100" width="160" x="250" y="-150" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_has_pref" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="HAS&#xa;(1:1)" vertex="1">
+          <mxGeometry height="50" width="80" x="290" y="-10" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" edge="1" parent="1" source="ent_user" target="rel_owns">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" edge="1" parent="1" source="rel_owns" target="ent_item">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" edge="1" parent="1" source="ent_user" target="rel_creates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" edge="1" parent="1" source="rel_creates" target="ent_outfit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" edge="1" parent="1" source="ent_item" target="rel_contains">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" edge="1" parent="1" source="rel_contains" target="ent_outfit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_7" edge="1" parent="1" source="ent_outfit" target="rel_logged">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_8" edge="1" parent="1" source="rel_logged" target="ent_history">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_9" edge="1" parent="1" source="ent_user" target="rel_has_pref">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_10" edge="1" parent="1" source="rel_has_pref" target="ent_pref">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

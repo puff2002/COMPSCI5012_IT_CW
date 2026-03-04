@@ -1,0 +1,102 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="SmartCloset Wireframes">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="w1_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="240" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_title" value="SmartCloset" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="90" y="80" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_input1" value="Email" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=10;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="70" y="160" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_input2" value="Password" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=10;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="70" y="200" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_btn" value="Login" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="70" y="250" width="180" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_link" value="No account? Register" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#0000FF;fontSize=10;textDecoration=underline;" vertex="1" parent="1">
+          <mxGeometry x="70" y="300" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="w1_label" value="1. Login Page (M1)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="240" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="w2_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="240" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_nav" value="Menu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_grid1" value="Item" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="330" y="90" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_grid2" value="Item" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="410" y="90" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_grid3" value="Item" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="490" y="90" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_filter" value="Filter: Summer [x]" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="330" y="160" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_fab" value="+" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="520" y="390" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w2_label" value="2. Dashboard (M3/M4)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="450" width="240" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="w3_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="40" width="240" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_header" value="&lt; Add New Item" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="610" y="50" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_upload" value="Tap to Upload Photo" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="630" y="100" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_sel1" value="Category: Top V" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="630" y="240" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_sel2" value="Season: Summer V" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="630" y="280" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_btn" value="Save" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="630" y="340" width="180" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="w3_label" value="3. Add Item (M2)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="600" y="450" width="240" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="w4_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="40" width="240" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_title" value="Outfit of the Day" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="880" y="50" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_top" value="Top" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1">
+          <mxGeometry x="930" y="90" width="140" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_bot" value="Bottom" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;" vertex="1" parent="1">
+          <mxGeometry x="930" y="210" width="140" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_btn1" value="Generate New" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="910" y="340" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_btn2" value="Save to History" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;textDecoration=underline;" vertex="1" parent="1">
+          <mxGeometry x="910" y="380" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="w4_label" value="4. Generator (S1/S2)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="880" y="450" width="240" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.6">
+  <diagram name="第 1 页" id="qBH2ISy0VSsvBqQKivNZ">
+    <mxGraphModel dx="1851" dy="1260" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="" vertex="1">
+          <mxGeometry height="700" width="1180" x="651" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;align=left;verticalAlign=top;spacingLeft=15;spacingTop=20;fontStyle=1" value="MENU&#10;&#10;Dashboard&#10;My Closet&#10;OOTD Generator&#10;* History&#10;Settings" vertex="1">
+          <mxGeometry height="700" width="200" x="651" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#eeeeee;align=left;spacingLeft=20;fontStyle=1;fontSize=16;" value="Outfit History &amp; Logs" vertex="1">
+          <mxGeometry height="60" width="980" x="851" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#eeeeee;" value="" vertex="1">
+          <mxGeometry height="50" width="980" x="851" y="294" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-5" parent="1" style="text;html=1;strokeColor=#cccccc;fillColor=#ffffff;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" value="Date Range: Last 30 Days V" vertex="1">
+          <mxGeometry height="30" width="180" x="871" y="304" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-6" parent="1" style="text;html=1;strokeColor=#cccccc;fillColor=#ffffff;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" value="Occasion: All V" vertex="1">
+          <mxGeometry height="30" width="120" x="1071" y="304" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-7" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=14;" value="Today - October 24, 2023" vertex="1">
+          <mxGeometry height="30" width="300" x="881" y="364" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dddddd;shadow=0;" value="" vertex="1">
+          <mxGeometry height="120" width="920" x="881" y="404" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Top" vertex="1">
+          <mxGeometry height="90" width="90" x="901" y="419" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Bottom" vertex="1">
+          <mxGeometry height="90" width="90" x="1001" y="419" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-11" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="&lt;b&gt;Casual Friday Look&lt;/b&gt;&lt;br&gt;Occasion: Work&lt;br&gt;Weather: Sunny, 22°C" vertex="1">
+          <mxGeometry height="90" width="200" x="1111" y="419" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="Wear Again" vertex="1">
+          <mxGeometry height="40" width="80" x="1601" y="444" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" value="Delete" vertex="1">
+          <mxGeometry height="40" width="80" x="1701" y="444" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-14" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=14;" value="Yesterday - October 23, 2023" vertex="1">
+          <mxGeometry height="30" width="300" x="881" y="544" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dddddd;" value="" vertex="1">
+          <mxGeometry height="120" width="920" x="881" y="584" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Outer" vertex="1">
+          <mxGeometry height="90" width="90" x="901" y="599" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Bottom" vertex="1">
+          <mxGeometry height="90" width="90" x="1001" y="599" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-18" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="&lt;b&gt;Rainy Day Outfit&lt;/b&gt;&lt;br&gt;Occasion: Casual&lt;br&gt;Weather: Rainy, 15°C" vertex="1">
+          <mxGeometry height="90" width="200" x="1111" y="599" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-19" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="Wear Again" vertex="1">
+          <mxGeometry height="40" width="80" x="1601" y="624" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" value="Delete" vertex="1">
+          <mxGeometry height="40" width="80" x="1701" y="624" as="geometry" />
+        </mxCell>
+        <mxCell id="GRNmFTH1z1tZaD8ilfDI-21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="500" width="8" x="1816" y="364" as="geometry" />
+        </mxCell>
+      <mxCell id="2" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="651.0" y="234.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="3" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="849.0" y="282.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="4" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1049.0" y="282.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="5" value="4" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1089.0" y="397.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="6" value="5" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1579.0" y="422.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="7" value="6" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1E88E5;strokeColor=#1565C0;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1679.0" y="422.0" width="20" height="20" as="geometry" /></mxCell><mxCell id="8" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#555555;" vertex="1" parent="1"><mxGeometry x="1871.0" y="234.0" width="320" height="520" as="geometry" /></mxCell><mxCell id="9" value="Annotated Notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#424242;strokeColor=#424242;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1871.0" y="234.0" width="320" height="32" as="geometry" /></mxCell><mxCell id="10" value="1. Side navigation&lt;br&gt;2. Date range filter&lt;br&gt;3. Occasion filter&lt;br&gt;4. Outfit summary card&lt;br&gt;5. Reuse this outfit&lt;br&gt;6. Delete entry" style="text;html=1;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" vertex="1" parent="1"><mxGeometry x="1879.0" y="274.0" width="304" height="472" as="geometry" /></mxCell></root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -16,12 +16,11 @@ I analyzed both final artifacts and versioned variants (especially ER/wireframe 
 
 This repository is a **coursework planning and design workspace** for an Internet Technology group project called **SmartCloset**.
 
-It is **not** an implementation repository yet. There is currently:
+It is **primarily** a planning and design repository. There is currently:
 
-- no Django project
-- no Python backend code
-- no HTML/CSS/JS source app
-- no tests, deployment config, or runtime scripts
+- no in-repo frontend implementation yet
+- no tests, deployment config, or runtime scripts in this repository
+- a linked backend workspace (`backend -> ../Wardrobe-Management/backend`) used as the implementation reference
 
 The repo currently functions as:
 
@@ -39,7 +38,7 @@ Primary design artifacts for SmartCloset:
 - sitemap diagram
 - ER diagram versions (`er`, `er_v2`, `er_v3`, `er_v4`)
 - wireframe versions (`Wireframes`, `Wireframes_v2`, split `v3_*` pages)
-- `backend_api.md` (broken symlink; details below)
+- `backend_api.md` (local API contract snapshot)
 
 ### `assessment/`
 Assignment briefs and guidance:
@@ -249,7 +248,7 @@ Not present yet in repo:
 - accessibility implementation evidence on chosen pages
 - deployment artifacts/URLs
 
-So the repository is currently **design-ready but implementation-empty**.
+So the repository is currently **design-ready with backend reference linked, but frontend implementation-empty**.
 
 ## 10) Repository Integrity and Tooling Findings
 
@@ -264,14 +263,14 @@ Four commits on March 4, 2026:
 
 History suggests rapid structuring rather than iterative software development.
 
-### Important broken reference
+### Backend/API source of truth
 
-`spec/backend_api.md` is a symlink to `../Wardrobe-Management/backend/API.md` and is currently broken in this repository context.
+`spec/backend_api.md` is now an in-repo API contract file, and `backend/` links to the active backend workspace.
 
-Impact:
+Risk that still remains:
 
-- API contract cannot be inspected locally
-- backend endpoint assumptions in spec are currently unverifiable
+- API doc and backend code can drift if one is updated without the other
+- this repository still depends on a sibling folder for direct backend code inspection
 
 ### Repo hygiene
 
@@ -291,7 +290,7 @@ Operationally, the current assets provide:
 5. Coursework compliance scaffolding (what must be built/reported)
 6. Theory context (lecture references to guide implementation choices)
 
-It does **not** currently execute or deliver user-facing behavior because implementation assets are absent.
+It does **not** currently execute or deliver user-facing behavior from this repository because in-repo frontend implementation assets are still absent.
 
 ## 12) Key Specificities and Risks to Preserve
 
@@ -301,11 +300,11 @@ Most important specifics discovered:
 - Weather API integration is treated as optional at feature level but present in architecture and OUTFIT schema (`Weather_Info`).
 - Data model evolution moved from normalized category/log entities to simpler string-driven design; this will trade flexibility for speed unless corrected.
 - Security-sensitive flows are explicitly in IA/wireframes (change password/delete account), which increases implementation scope beyond basic CRUD.
-- Linked backend API spec is missing due broken symlink, creating a blind spot for endpoint naming and payload formats.
+- Backend API spec is now local, but contract drift risk remains unless API docs and backend routes/models are updated together.
 
 ## 13) Recommended Immediate Follow-up (from this analysis)
 
-1. Restore or replace `spec/backend_api.md` with an in-repo API contract.
+1. Keep `spec/backend_api.md` synchronized with backend route/model changes at each milestone.
 2. Freeze one canonical ER version (currently `v4`) and explicitly define outfit-item role modeling.
 3. Convert v3 wireframes + sitemap into route list and component checklist.
 4. Bootstrap Django project structure and map each Must story to model/view/template/API endpoint.
@@ -315,4 +314,4 @@ Most important specifics discovered:
 
 ### Final Conclusion
 
-This repository is a well-assembled **pre-implementation design dossier** for a SmartCloset web app and coursework submission pipeline. It demonstrates strong planning artifacts (architecture/sitemap/wireframes/ER evolution), but no executable system yet. The main technical blockers before implementation are schema finalization consistency and the missing API spec target.
+This repository is a well-assembled **planning dossier with a linked backend reference** for a SmartCloset web app and coursework submission pipeline. It demonstrates strong planning artifacts (architecture/sitemap/wireframes/ER evolution), while frontend implementation in this repo is still pending. The main technical blockers before full integration are schema finalization consistency and API-contract synchronization discipline.

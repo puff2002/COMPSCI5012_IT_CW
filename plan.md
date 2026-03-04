@@ -453,18 +453,139 @@ Frontend is done when:
 5. Accessibility criteria are demonstrably implemented.
 6. Lighthouse before/after evidence is captured.
 
-## 10. Risks and Mitigations
+## 10. Risks and Mitigations (Backend-Aligned)
 
-- Risk: API payload/field mismatch.
-  - Mitigation: centralize API typing assumptions in `api.js` + defensive null checks.
-- Risk: Token expiry breaks user flow.
-  - Mitigation: refresh-retry wrapper + hard redirect on refresh failure.
-- Risk: Weather API unreliable.
-  - Mitigation: graceful fallback UI and clear status message.
-- Risk: Scope creep.
-  - Mitigation: finish Must stories first, then Should/Could.
+- Risk: category values are strict enum (`top|bottom|shoes`), while AI/upload pipelines may output inconsistent labels.
+  - Mitigation: enforce client-side normalization before submit; reject unknown values early in form validation; add contract tests for upload-returned category.
+- Risk: `POST /api/outfits/recommend/` creates both `Outfit` and `OutfitHistory` records automatically (side effect).
+  - Mitigation: frontend must not auto-create an additional history entry after recommend success; treat returned `history` object as source of truth.
+- Risk: weather dependency can return `503 weather unavailable`, blocking recommendation.
+  - Mitigation: provide fallback UX ("manual outfit selection" path), retain last successful recommendation in UI state, and show retry action with status messaging.
+- Risk: token refresh flow may fail due missing/expired refresh token.
+  - Mitigation: single refresh-retry in `api.js`, then hard logout + redirect; preserve the intended return page in query string for better recovery UX.
+- Risk: media upload + image analysis path can fail (`file required`, non-image, analyzer exception).
+  - Mitigation: pre-validate MIME/size client-side, show explicit upload error states, and allow manual item creation when analysis fails.
+- Risk: frontend/backend schema drift over time (API docs and backend code updated separately).
+  - Mitigation: update `spec/backend_api.md` and `spec/backend_issues.md` at each backend contract change, and run a smoke test checklist against live endpoints before demos.
+- Risk: access-control regressions (user should only read/write own wardrobe/history).
+  - Mitigation: add integration tests for cross-user access and validate every list/detail endpoint is user-scoped in QA.
+- Risk: performance and dependency footprint (e.g., `rembg`/`onnxruntime`) can slow local demos.
+  - Mitigation: separate "core demo path" from "AI upload path"; preload sample items so core CRUD/OOTD flows work even when heavy services are unavailable.
 
-## 11. Optional Upgrade (After Core Pass)
+## 11. Detailed TODO List (Phased, Do Not Implement Yet)
+
+Use this checklist as the execution tracker for the whole frontend plan.
+
+### Phase 0: Project setup and alignment
+
+- [ ] Confirm scope freeze for Must/Should/Could features with team.
+- [ ] Confirm backend base URL and environment strategy (`dev`, `demo`, `prod`).
+- [ ] Verify `spec/backend_api.md` version matches active backend branch.
+- [ ] Create issue-tracking rhythm using `spec/backend_issues.md`.
+- [ ] Define page ownership (who builds which page/module).
+- [ ] Define coding conventions (JS style, naming, error handling, commit format).
+
+### Phase 1: Frontend skeleton and shared system
+
+- [ ] Create `frontend/` file/folder structure from Section 3.1.
+- [ ] Create all page shells (`index`, `dashboard`, `closet`, `ootd`, `history`, `settings`).
+- [ ] Implement shared sidebar/top navigation and active-link state.
+- [ ] Add shared CSS foundations (`base.css`, variables, spacing, typography).
+- [ ] Add reusable utility classes (cards, form groups, status banners, empty states).
+- [ ] Add skip-link and global `aria-live` region patterns.
+- [ ] Set up shared JS modules (`config.js`, `auth.js`, `api.js`, `ui.js`) as stubs.
+
+### Phase 2: Authentication and route protection
+
+- [ ] Build register form UI and validation states.
+- [ ] Build login form UI and validation states.
+- [ ] Implement register API call and success/error handling.
+- [ ] Implement login API call and token persistence.
+- [ ] Implement logout API call and token clearing.
+- [ ] Implement auth guard for protected pages.
+- [ ] Implement redirect flow for unauthenticated access attempts.
+- [ ] Implement token refresh + single retry strategy on 401.
+- [ ] Add auth UX polish (loading states, disabled submit, readable error messages).
+
+### Phase 3: Closet CRUD and upload flow
+
+- [ ] Build closet grid/list layout with responsive behavior.
+- [ ] Implement load/list items from `/api/wardrobe/items/`.
+- [ ] Build add-item form (manual create path).
+- [ ] Build edit-item form/modal.
+- [ ] Implement delete confirmation and delete action.
+- [ ] Implement filter/search UI (category/style/season/usage where applicable).
+- [ ] Implement upload form for `/api/wardrobe/items/upload/`.
+- [ ] Add upload pre-validation (file type/size) and failure handling.
+- [ ] Normalize/validate `category` values (`top|bottom|shoes`) before submit.
+- [ ] Add empty-state and first-item onboarding hints.
+
+### Phase 4: OOTD recommendation flow
+
+- [ ] Build weather location search UI.
+- [ ] Implement city search (`/api/integrations/weather/search/`).
+- [ ] Implement current weather preview (`/api/integrations/weather/now/`).
+- [ ] Build OOTD result panel (weather + recommendation + selected items).
+- [ ] Implement `POST /api/outfits/recommend/`.
+- [ ] Ensure returned `history` from recommend is used as source of truth.
+- [ ] Add graceful fallback path when weather/recommendation fails (manual selection).
+- [ ] Add clear state transitions (idle/loading/success/error/retry).
+
+### Phase 5: Outfit history management
+
+- [ ] Build history list view and item card layout.
+- [ ] Implement history list fetch (`GET /api/outfits/history/`).
+- [ ] Implement manual history create flow only where needed.
+- [ ] Implement rating/feedback edit (`PATCH /api/outfits/history/{id}/`).
+- [ ] Implement delete history entry (`DELETE /api/outfits/history/{id}/`).
+- [ ] Add “wear again” action mapping to existing outfit data.
+- [ ] Add filters/sorting (date/rating) if within scope.
+- [ ] Prevent duplicate entries caused by recommend side effects.
+
+### Phase 6: Settings and integrations
+
+- [ ] Build profile/settings page sections (profile, integrations, security).
+- [ ] Implement current-user fetch (`GET /api/auth/me/`).
+- [ ] Implement integration config read (`GET /api/integrations/config/`).
+- [ ] Implement integration config update (`POST /api/integrations/config/`).
+- [ ] Add safe handling for masked/optional API keys in UI.
+- [ ] Wire logout action in settings and global nav.
+- [ ] Add danger-zone UX copy and confirmation patterns (non-destructive unless endpoint exists).
+
+### Phase 7: Cross-cutting quality (accessibility, performance, resilience)
+
+- [ ] Verify semantic labels and form associations on key forms.
+- [ ] Verify keyboard navigation across all interactive controls.
+- [ ] Add visible focus styles and contrast checks (WCAG AA target).
+- [ ] Ensure async feedback uses `aria-live` where appropriate.
+- [ ] Add image lazy-loading and fixed dimensions for layout stability.
+- [ ] Remove duplicate/unnecessary API calls per page load.
+- [ ] Add robust error boundary patterns for network/API failures.
+- [ ] Add offline/slow-network messaging for critical flows.
+
+### Phase 8: Integration testing and acceptance
+
+- [ ] Build endpoint smoke-test checklist from Section 4 mappings.
+- [ ] Test auth lifecycle: login -> refresh -> logout -> relogin.
+- [ ] Test closet CRUD and upload end-to-end with real backend.
+- [ ] Test recommendation flow with valid and failing weather scenarios.
+- [ ] Test history CRUD and duplicate-protection behavior.
+- [ ] Test settings/integration update and persistence.
+- [ ] Test ownership boundaries using two user accounts.
+- [ ] Verify mobile and desktop responsiveness on target breakpoints.
+- [ ] Run accessibility checks on selected required pages.
+- [ ] Run Lighthouse baseline and after-optimization comparison.
+
+### Phase 9: Submission-ready artifacts
+
+- [ ] Capture screenshots/video snippets of all required working flows.
+- [ ] Compile accessibility evidence for selected pages.
+- [ ] Compile sustainability/performance before-after evidence.
+- [ ] Summarize implemented Must/Should/Could with proof links.
+- [ ] Record known issues and mitigations in `spec/backend_issues.md`.
+- [ ] Prepare demo script aligned with coursework marking criteria.
+
+## 12. Optional Upgrade (After Core Pass)
 
 If time allows, add:
 

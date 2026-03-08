@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | Dashboard</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <h1 class="brand-title">SmartCloset</h1>
+      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <nav class="app-nav" aria-label="Main">
+        <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="app-nav-link" href="./closet.html">My Closet</a>
+        <a class="app-nav-link" href="./ootd.html">OOTD Generator</a>
+        <a class="app-nav-link" href="./history.html">History</a>
+        <a class="app-nav-link" href="./settings.html">Settings</a>
+      </nav>
+    </aside>
+    <main class="app-main" id="main-content">
+      <header class="page-header">
+        <h2>Dashboard</h2>
+      </header>
+      <section class="panel">
+        <h3 id="welcomeText">Welcome</h3>
+        <p id="profileSummary" class="muted"></p>
+      </section>
+      <section class="panel">
+        <h3>Quick Actions</h3>
+        <div class="item-actions">
+          <a class="btn btn-primary" href="./closet.html">Manage Closet</a>
+          <a class="btn btn-secondary" href="./ootd.html">Generate OOTD</a>
+          <a class="btn btn-secondary" href="./history.html">Review History</a>
+        </div>
+      </section>
+      <p id="statusRegion" class="status-line" aria-live="polite"></p>
+    </main>
+  </div>
+  <script type="module" src="./assets/js/pages/dashboard.js"></script>
+</body>
+</html>

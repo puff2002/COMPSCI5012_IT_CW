@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | Closet</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <h1 class="brand-title">SmartCloset</h1>
+      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <nav class="app-nav" aria-label="Main">
+        <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="app-nav-link" href="./closet.html">My Closet</a>
+        <a class="app-nav-link" href="./ootd.html">OOTD Generator</a>
+        <a class="app-nav-link" href="./history.html">History</a>
+        <a class="app-nav-link" href="./settings.html">Settings</a>
+      </nav>
+    </aside>
+    <main class="app-main" id="main-content">
+      <header class="page-header">
+        <h2>My Closet</h2>
+      </header>
+
+      <section class="panel">
+        <h3 id="itemFormTitle">Add New Item</h3>
+        <form id="itemForm" novalidate>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="itemCategory">Category</label>
+              <select id="itemCategory" class="select" required>
+                <option value="">Select category</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="shoes">Shoes</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="itemName">Item Name</label>
+              <input id="itemName" class="input" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="itemStyle">Style tags (comma-separated)</label>
+              <input id="itemStyle" class="input" placeholder="casual, minimalist">
+            </div>
+            <div class="form-field">
+              <label for="itemSeason">Season tags (comma-separated)</label>
+              <input id="itemSeason" class="input" placeholder="summer, spring">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="itemUsage">Usage tags (comma-separated)</label>
+              <input id="itemUsage" class="input" placeholder="daily, office">
+            </div>
+            <div class="form-field">
+              <label for="itemColor">Color</label>
+              <input id="itemColor" class="input" placeholder="white">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="itemDescription">Description</label>
+            <input id="itemDescription" class="input" placeholder="notes">
+          </div>
+          <p id="itemError" class="status-line status-error" aria-live="polite"></p>
+          <div class="item-actions">
+            <button id="itemSubmit" class="btn btn-primary" type="submit">Save item</button>
+            <button id="itemReset" class="btn btn-secondary" type="button">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Upload and Auto Analyze</h3>
+        <form id="uploadForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="itemImage">Image</label>
+              <input id="itemImage" class="input" type="file" accept="image/*" required>
+            </div>
+          </div>
+          <p id="uploadStatus" class="status-line" aria-live="polite"></p>
+          <button id="uploadBtn" class="btn btn-secondary" type="submit">Upload</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Closet Items</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="filterText">Search</label>
+            <input id="filterText" class="input" placeholder="Search name or description">
+          </div>
+          <div class="form-field">
+            <label for="filterCategory">Filter category</label>
+            <select id="filterCategory" class="select">
+              <option value="">All</option>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+              <option value="shoes">Shoes</option>
+            </select>
+          </div>
+        </div>
+        <p id="closetStatus" class="status-line" aria-live="polite"></p>
+        <section id="itemsGrid" class="items-grid" aria-label="Closet items"></section>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./assets/js/pages/closet.js"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@ It is **primarily** a planning and design repository. There is currently:
 
 - no in-repo frontend implementation yet
 - no tests, deployment config, or runtime scripts in this repository
-- a linked backend workspace (`backend -> ../Wardrobe-Management/backend`) used as the implementation reference
+- a local backend codebase in `backend/` used as the implementation reference
 
 The repo currently functions as:
 
@@ -265,12 +265,12 @@ History suggests rapid structuring rather than iterative software development.
 
 ### Backend/API source of truth
 
-`spec/backend_api.md` is now an in-repo API contract file, and `backend/` links to the active backend workspace.
+`spec/backend_api.md` is now an in-repo API contract file, and backend implementation code is stored directly in local `backend/`.
 
 Risk that still remains:
 
 - API doc and backend code can drift if one is updated without the other
-- this repository still depends on a sibling folder for direct backend code inspection
+- backend and API docs can still drift if update discipline is not followed
 
 ### Repo hygiene
 
@@ -314,4 +314,4 @@ Most important specifics discovered:
 
 ### Final Conclusion
 
-This repository is a well-assembled **planning dossier with a linked backend reference** for a SmartCloset web app and coursework submission pipeline. It demonstrates strong planning artifacts (architecture/sitemap/wireframes/ER evolution), while frontend implementation in this repo is still pending. The main technical blockers before full integration are schema finalization consistency and API-contract synchronization discipline.
+This repository is a well-assembled **planning dossier with local backend implementation context** for a SmartCloset web app and coursework submission pipeline. It demonstrates strong planning artifacts (architecture/sitemap/wireframes/ER evolution), while frontend implementation in this repo is still pending. The main technical blockers before full integration are schema finalization consistency and API-contract synchronization discipline.

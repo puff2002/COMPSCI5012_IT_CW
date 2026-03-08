@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | History</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <h1 class="brand-title">SmartCloset</h1>
+      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <nav class="app-nav" aria-label="Main">
+        <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="app-nav-link" href="./closet.html">My Closet</a>
+        <a class="app-nav-link" href="./ootd.html">OOTD Generator</a>
+        <a class="app-nav-link" href="./history.html">History</a>
+        <a class="app-nav-link" href="./settings.html">Settings</a>
+      </nav>
+    </aside>
+    <main class="app-main" id="main-content">
+      <header class="page-header">
+        <h2>Outfit History</h2>
+      </header>
+
+      <section class="panel">
+        <h3 id="historyMode">Create / Update History Entry</h3>
+        <form id="historyForm">
+          <input id="historyId" type="hidden">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="historyOutfitId">Outfit ID (for manual create)</label>
+              <input id="historyOutfitId" class="input" type="number" min="1">
+            </div>
+            <div class="form-field">
+              <label for="historyRating">Rating (1-5)</label>
+              <input id="historyRating" class="input" type="number" min="1" max="5">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="historyFeedback">Feedback</label>
+            <input id="historyFeedback" class="input" placeholder="Comfort and style notes">
+          </div>
+          <p id="historyError" class="status-line status-error" aria-live="polite"></p>
+          <div class="item-actions">
+            <button id="historySubmit" class="btn btn-primary" type="submit">Save</button>
+            <button id="historyReset" class="btn btn-secondary" type="button">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>History List</h3>
+        <p id="historyStatus" class="status-line" aria-live="polite"></p>
+        <section id="historyList" class="items-grid" aria-label="History entries"></section>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./assets/js/pages/history.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "smartcloset-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf assets/js",
+    "smoke": "node ./scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

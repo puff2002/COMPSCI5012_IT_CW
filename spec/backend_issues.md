@@ -65,8 +65,31 @@ This file tracks confirmed or suspected backend/API issues discovered during fro
 - Status: Open
 - Severity: Medium
 - Area: Docs
-- Source: `spec/backend_api.md`, linked backend workspace
+- Source: `spec/backend_api.md`, local `backend/` codebase
 - Description: API documentation is now local, but there is no explicit update workflow when backend endpoints/models change.
 - Impact: Stale docs can cause frontend implementation drift and integration failures.
 - Proposed mitigation: Add a release checklist item: update `spec/backend_api.md` and this file for every backend contract change.
 - Owner: TBD
+
+## BI-005: Wardrobe create/update endpoint rejects JSON payloads (`415`)
+- Date: 2026-03-05
+- Status: Open
+- Severity: Medium
+- Area: API contract
+- Source: `POST/PATCH /api/wardrobe/items/`, `backend/wardrobe/views.py`
+- Description: Viewset parser configuration accepts multipart/form-data but not JSON for item create/update.
+- Impact: Frontend must submit FormData for normal CRUD, which is unusual for non-file forms and increases client complexity.
+- Proposed mitigation: Either add JSON parser support in backend or document multipart requirement explicitly in API contract.
+- Owner: TBD
+
+## BI-006: Missing initial migrations for app tables caused runtime `500`
+- Date: 2026-03-05
+- Status: Resolved
+- Severity: High
+- Area: Backend logic
+- Source: `wardrobe`, `outfits` Django apps
+- Description: API runtime failed with `OperationalError: no such table: wardrobe_clothingitem` because initial app migrations were not present/applied.
+- Impact: CRUD endpoints for wardrobe/outfits failed even though auth worked.
+- Proposed mitigation: Keep generated migrations committed and include migration step in setup checklist.
+- Owner: TBD
+- Resolution note: Created and applied initial migrations (`wardrobe/migrations/0001_initial.py`, `outfits/migrations/0001_initial.py`) on 2026-03-05.

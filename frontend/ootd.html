@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | OOTD</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <h1 class="brand-title">SmartCloset</h1>
+      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <nav class="app-nav" aria-label="Main">
+        <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="app-nav-link" href="./closet.html">My Closet</a>
+        <a class="app-nav-link" href="./ootd.html">OOTD Generator</a>
+        <a class="app-nav-link" href="./history.html">History</a>
+        <a class="app-nav-link" href="./settings.html">Settings</a>
+      </nav>
+    </aside>
+    <main class="app-main" id="main-content">
+      <header class="page-header">
+        <h2>OOTD Generator</h2>
+      </header>
+      <section class="panel">
+        <h3>Location and Weather</h3>
+        <form id="citySearchForm" class="form-row">
+          <div class="form-field">
+            <label for="cityQuery">City query</label>
+            <input id="cityQuery" class="input" placeholder="beijing, london, shanghai">
+          </div>
+          <div class="form-field" style="align-self:end;">
+            <button id="citySearchBtn" class="btn btn-secondary" type="submit">Search city</button>
+          </div>
+        </form>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="cityList">City results</label>
+            <select id="cityList" class="select"></select>
+          </div>
+          <div class="form-field" style="align-self:end;">
+            <div class="item-actions">
+              <button id="weatherBtn" class="btn btn-secondary" type="button">Load weather</button>
+              <button id="recommendBtn" class="btn btn-primary" type="button">Generate OOTD</button>
+            </div>
+          </div>
+        </div>
+        <p id="ootdStatus" class="status-line" aria-live="polite"></p>
+        <p id="weatherText" class="status-line"></p>
+      </section>
+
+      <section class="panel">
+        <h3>Recommendation</h3>
+        <p id="recommendText" class="status-line"></p>
+        <ul id="outfitItems" class="outfit-items"></ul>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./assets/js/pages/ootd.js"></script>
+</body>
+</html>

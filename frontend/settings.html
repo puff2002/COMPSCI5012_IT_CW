@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | Settings</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <h1 class="brand-title">SmartCloset</h1>
+      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <nav class="app-nav" aria-label="Main">
+        <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="app-nav-link" href="./closet.html">My Closet</a>
+        <a class="app-nav-link" href="./ootd.html">OOTD Generator</a>
+        <a class="app-nav-link" href="./history.html">History</a>
+        <a class="app-nav-link" href="./settings.html">Settings</a>
+      </nav>
+    </aside>
+    <main class="app-main" id="main-content">
+      <header class="page-header">
+        <h2>Settings</h2>
+        <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
+      </header>
+
+      <section class="panel">
+        <h3>Profile</h3>
+        <p id="profileText" class="status-line"></p>
+      </section>
+
+      <section class="panel">
+        <h3>Integrations</h3>
+        <p id="maskedKeys" class="muted"></p>
+        <form id="configForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="apiBase">API Base</label>
+              <input id="apiBase" class="input">
+            </div>
+            <div class="form-field">
+              <label for="model">Model</label>
+              <input id="model" class="input">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="apiKey">API Key</label>
+              <input id="apiKey" class="input" type="password" autocomplete="off">
+            </div>
+            <div class="form-field">
+              <label for="removeBgKey">RemoveBG Key</label>
+              <input id="removeBgKey" class="input" type="password" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="bgMethod">Background Removal Method</label>
+              <input id="bgMethod" class="input" placeholder="removebg">
+            </div>
+            <div class="form-field">
+              <label for="weatherHost">QWeather Host</label>
+              <input id="weatherHost" class="input" placeholder="devapi.qweather.com">
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="weatherKey">QWeather Key</label>
+            <input id="weatherKey" class="input" type="password" autocomplete="off">
+          </div>
+          <p id="configError" class="status-line status-error" aria-live="polite"></p>
+          <div class="item-actions">
+            <button id="configSaveBtn" class="btn btn-primary" type="submit">Save Config</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Security</h3>
+        <p class="muted">Danger zone actions should stay server-protected. Account deletion endpoint is not implemented in current API contract.</p>
+      </section>
+
+      <p id="settingsStatus" class="status-line" aria-live="polite"></p>
+    </main>
+  </div>
+  <script type="module" src="./assets/js/pages/settings.js"></script>
+</body>
+</html>

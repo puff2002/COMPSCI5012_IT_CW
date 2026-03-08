@@ -1,0 +1,84 @@
+.auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-card {
+  width: min(900px, 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-hero {
+  padding: 2rem;
+  background: linear-gradient(155deg, #0f3d74 0%, #1565c0 45%, #2ea0d6 100%);
+  color: #fff;
+}
+
+.auth-panel {
+  padding: 1.25rem;
+}
+
+.tab-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tab-row button {
+  border: 0;
+  background: #fff;
+  padding: 0.65rem;
+}
+
+.tab-row button.active {
+  background: #e8f1ff;
+  color: var(--brand-dark);
+  font-weight: 700;
+}
+
+.items-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.item-card,
+.history-card {
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.item-card-body,
+.history-card {
+  padding: 0.85rem;
+}
+
+.history-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+ul.outfit-items {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+@media (max-width: 900px) {
+  .auth-card {
+    grid-template-columns: 1fr;
+  }
+}

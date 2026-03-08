@@ -1,0 +1,164 @@
+:root {
+  --bg: #eef2f8;
+  --panel: #ffffff;
+  --panel-alt: #f8fbff;
+  --border: #d7dfeb;
+  --brand: #1565c0;
+  --brand-dark: #0d47a1;
+  --text: #1e293b;
+  --muted: #64748b;
+  --danger: #b91c1c;
+  --ok: #1d7a48;
+  --warn: #9a6800;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Noto Sans", "Helvetica Neue", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 20% 20%, #dce8ff 0%, transparent 25%),
+    radial-gradient(circle at 80% 0%, #d4f2ff 0%, transparent 22%),
+    var(--bg);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  background: #fff;
+  border: 1px solid var(--brand);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  z-index: 2000;
+}
+
+.app-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+}
+
+.app-sidebar {
+  background: linear-gradient(180deg, #0f3d74 0%, #125090 60%, #1565c0 100%);
+  color: #e7f0ff;
+  padding: 1.4rem 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.brand-subtitle {
+  margin: 0.3rem 0 1.2rem;
+  color: #bed8ff;
+  font-size: 0.95rem;
+}
+
+.app-nav {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.app-nav-link {
+  text-decoration: none;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: 160ms ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link:focus {
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+
+.app-nav-link.active {
+  background: #ffffff;
+  color: #0f3d74;
+  font-weight: 600;
+}
+
+.app-main {
+  padding: 1.2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.panel + .panel {
+  margin-top: 1rem;
+}
+
+.grid-two {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.empty-panel {
+  margin: 0;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+@media (max-width: 960px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    padding: 1rem;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+
+  .grid-two {
+    grid-template-columns: 1fr;
+  }
+}

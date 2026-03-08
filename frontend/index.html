@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCloset | Login</title>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <main id="main-content" class="auth-wrap">
+    <section class="auth-card" aria-label="Authentication">
+      <aside class="auth-hero">
+        <h1>SmartCloset</h1>
+        <p>Plan your outfit with wardrobe tracking and weather-aware recommendations.</p>
+        <p>Core flow: login, manage closet, generate OOTD, review history, tune settings.</p>
+      </aside>
+      <section class="auth-panel">
+        <div class="tab-row" role="tablist" aria-label="Auth tabs">
+          <button id="tabLogin" class="active" type="button" role="tab" aria-selected="true">Login</button>
+          <button id="tabRegister" type="button" role="tab" aria-selected="false">Register</button>
+        </div>
+
+        <section id="panelLogin" role="tabpanel" aria-label="Login panel">
+          <form id="loginForm" novalidate>
+            <div class="form-field">
+              <label for="loginUsername">Username</label>
+              <input class="input" id="loginUsername" name="username" required>
+            </div>
+            <div class="form-field">
+              <label for="loginPassword">Password</label>
+              <input class="input" id="loginPassword" name="password" type="password" required>
+            </div>
+            <p id="loginError" class="status-line status-error" aria-live="polite"></p>
+            <button id="loginBtn" class="btn btn-primary" type="submit">Sign in</button>
+          </form>
+        </section>
+
+        <section id="panelRegister" role="tabpanel" aria-label="Register panel" hidden>
+          <form id="registerForm" novalidate>
+            <div class="form-field">
+              <label for="registerUsername">Username</label>
+              <input class="input" id="registerUsername" name="username" required>
+            </div>
+            <div class="form-field">
+              <label for="registerEmail">Email</label>
+              <input class="input" id="registerEmail" name="email" type="email" required>
+            </div>
+            <div class="form-field">
+              <label for="registerPassword">Password</label>
+              <input class="input" id="registerPassword" name="password" type="password" minlength="8" required>
+            </div>
+            <p id="registerError" class="status-line status-error" aria-live="polite"></p>
+            <p id="registerSuccess" class="status-line status-ok" aria-live="polite"></p>
+            <button id="registerBtn" class="btn btn-primary" type="submit">Create account</button>
+          </form>
+        </section>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./assets/js/pages/login.js"></script>
+</body>
+</html>

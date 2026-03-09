@@ -1,4 +1,4 @@
-export const API_BASE = "http://127.0.0.1:8000/api";
+export const API_BASE = "/api";
 
 export const ROUTES = {
   index: "./index.html",

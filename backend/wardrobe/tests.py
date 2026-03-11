@@ -1,11 +1,16 @@
+import shutil
+import tempfile
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from domain.clothes import ClothesSemantics
+from .models import ClothingItem
 
 User = get_user_model()
 
@@ -13,13 +18,14 @@ User = get_user_model()
 PNG_BYTES = (
     b"\x89PNG\r\n\x1a\n"
     b"\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
-    b"\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfeA\xd9\xa3\x1d"
+    b"\x00\x00\x00\rIDATx\x9cc\xf8\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99=\x1d"
     b"\x00\x00\x00\x00IEND\xaeB`\x82"
 )
 
 
 class WardrobeUploadTests(APITestCase):
     def setUp(self):
+        self._media_root = tempfile.mkdtemp(prefix="wardrobe-test-media-")
         self.user = User.objects.create_user(
             username="closet-user",
             email="closet@example.com",
@@ -32,6 +38,13 @@ class WardrobeUploadTests(APITestCase):
         )
         self.access = login_resp.data["access"]
         self.auth_headers = {"HTTP_AUTHORIZATION": f"Bearer {self.access}"}
+        self.override = override_settings(MEDIA_ROOT=self._media_root)
+        self.override.enable()
+
+    def tearDown(self):
+        self.override.disable()
+        shutil.rmtree(self._media_root, ignore_errors=True)
+        super().tearDown()
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
@@ -138,3 +151,31 @@ class WardrobeUploadTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["detail"], "unsupported or corrupted image")
+
+    def test_create_item_stores_uploaded_image_with_uuid_filename(self):
+        upload = SimpleUploadedFile("summer-shirt.png", PNG_BYTES, content_type="image/png")
+
+        response = self.client.post(
+            "/api/wardrobe/items/",
+            {
+                "category": "top",
+                "item": "Summer Shirt",
+                "style_semantics": '["casual"]',
+                "season_semantics": '["summer"]',
+                "usage_semantics": '["daily"]',
+                "color_semantics": "light",
+                "description": "Lightweight shirt",
+                "image": upload,
+            },
+            format="multipart",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        item = ClothingItem.objects.get(pk=response.data["id"])
+        self.assertTrue(item.image.name.startswith("items/"))
+        self.assertNotIn("summer-shirt", item.image.name)
+
+        stored_name = Path(item.image.name).name
+        self.assertRegex(stored_name, r"^[0-9a-f-]{36}\.png$")
+        self.assertTrue(Path(self._media_root, item.image.name).exists())

@@ -1,26 +1,26 @@
 """
-衣物语义识别 Prompt
+Clothing semantic recognition prompt
 """
 
 CLOTHES_SEMANTIC_PROMPT = """
-你是一个【服装语义理解 AI】，不是目标检测模型。
+You are a clothing semantic understanding AI, not an object detection model.
 
-请从图片中进行【语义层面的理解】，不要描述像素、位置或背景。
+Please analyze the image at a semantic level. Do not describe pixels, positions, or the background.
 
-目标：为智能衣柜抽取"可用于推荐和推理"的服装语义。
+Goal: extract clothing semantics that can be used for recommendation and reasoning in a smart wardrobe system.
 
-请只返回 JSON，不要任何解释。
+Return JSON only. Do not include any explanation.
 
-JSON Schema：
+JSON schema:
 {
   "category": "top | bottom | shoes",
-  "item": "具体衣物名称，如 T恤、牛仔裤、运动鞋",
-  "style_semantics": ["风格标签，如 休闲、正式、运动"],
-  "season_semantics": ["春", "夏", "秋", "冬"],
-  "usage_semantics": ["通勤", "日常", "运动", "约会"],
-  "color_semantics": "颜色语义，如 深色系 / 浅色系 / 中性色",
-  "description": "一句话语义总结"
+  "item": "Specific clothing item name, such as T-shirt, jeans, or sneakers",
+  "style_semantics": ["Style tags such as casual, formal, sporty"],
+  "season_semantics": ["spring", "summer", "autumn", "winter"],
+  "usage_semantics": ["commute", "daily", "sports", "date"],
+  "color_semantics": "Color semantics such as dark tones / light tones / neutral tones",
+  "description": "A one-sentence semantic summary"
 }
 
-如果无法判断，请填 "unknown"。
+If something cannot be determined, use "unknown".
 """

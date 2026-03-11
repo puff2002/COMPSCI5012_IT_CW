@@ -83,7 +83,36 @@ class OutfitRecommendationTests(APITestCase):
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
     def test_recommend_returns_outfit_and_history(self, mock_recommendation: AsyncMock, mock_get_weather: AsyncMock):
         mock_get_weather.return_value = self._weather()
-        mock_recommendation.return_value = "Wear the Oxford Shirt with the Chinos and loafers."
+        mock_recommendation.return_value = {
+            "summary": "A light smart-casual outfit for mild weather.",
+            "weather_focus": ["mild", "dry"],
+            "recommendations": {
+                "top": {
+                    "type": "oxford shirt",
+                    "season": ["spring"],
+                    "color": ["light"],
+                    "texture": ["cotton"],
+                    "style": ["smart"],
+                    "reason": "Breathable and polished.",
+                },
+                "bottom": {
+                    "type": "chinos",
+                    "season": ["spring"],
+                    "color": ["neutral"],
+                    "texture": ["cotton"],
+                    "style": ["smart-casual"],
+                    "reason": "Comfortable for mild weather.",
+                },
+                "shoes": {
+                    "type": "loafers",
+                    "season": ["spring"],
+                    "color": ["brown"],
+                    "texture": ["leather"],
+                    "style": ["smart-casual"],
+                    "reason": "Works well in dry conditions.",
+                },
+            },
+        }
 
         response = self.client.post(
             "/api/outfits/recommend/",
@@ -93,10 +122,11 @@ class OutfitRecommendationTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["outfit"]["recommendation_text"], "Wear the Oxford Shirt with the Chinos and loafers.")
+        self.assertEqual(response.data["outfit"]["recommendation_text"], "A light smart-casual outfit for mild weather.")
         self.assertEqual(response.data["outfit"]["top"], self.top.id)
         self.assertEqual(response.data["outfit"]["bottom"], self.bottom.id)
         self.assertEqual(response.data["outfit"]["shoes"], self.shoes.id)
+        self.assertEqual(response.data["recommendation"]["recommendations"]["top"]["type"], "oxford shirt")
         self.assertEqual(Outfit.objects.count(), 1)
         self.assertEqual(OutfitHistory.objects.count(), 1)
         args = mock_recommendation.await_args.args
@@ -124,7 +154,36 @@ class OutfitRecommendationTests(APITestCase):
             location="Melbourne, Victoria, Australia",
             obsTime="2026-03-11T06:00",
         )
-        mock_recommendation.return_value = "Use the best available lightweight pieces."
+        mock_recommendation.return_value = {
+            "summary": "Prioritize warmer upper layers for the cold morning.",
+            "weather_focus": ["cold", "overcast"],
+            "recommendations": {
+                "top": {
+                    "type": "knit",
+                    "season": ["winter"],
+                    "color": ["dark"],
+                    "texture": ["heavy"],
+                    "style": ["casual"],
+                    "reason": "Adds warmth.",
+                },
+                "bottom": {
+                    "type": "chinos",
+                    "season": ["autumn"],
+                    "color": ["neutral"],
+                    "texture": ["structured"],
+                    "style": ["smart-casual"],
+                    "reason": "Only bottom available.",
+                },
+                "shoes": {
+                    "type": "loafers",
+                    "season": ["autumn"],
+                    "color": ["brown"],
+                    "texture": ["leather"],
+                    "style": ["smart-casual"],
+                    "reason": "Only footwear available.",
+                },
+            },
+        }
 
         response = self.client.post(
             "/api/outfits/recommend/",
@@ -134,13 +193,13 @@ class OutfitRecommendationTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["outfit"]["top"], self.cold_top.id)
+        self.assertEqual(response.data["outfit"]["bottom"], self.bottom.id)
+        self.assertEqual(response.data["outfit"]["shoes"], self.shoes.id)
         args = mock_recommendation.await_args.args
-        top_items = args[2]
-        bottom_items = args[3]
-        shoe_items = args[4]
-        self.assertEqual({item["item"] for item in top_items}, {"Heavy Knit"})
-        self.assertEqual({item["item"] for item in bottom_items}, {"Chinos"})
-        self.assertEqual({item["item"] for item in shoe_items}, {"Leather Loafers"})
+        self.assertEqual({item["item"] for item in args[2]}, {"Oxford Shirt", "Heavy Knit"})
+        self.assertEqual({item["item"] for item in args[3]}, {"Chinos"})
+        self.assertEqual({item["item"] for item in args[4]}, {"Leather Loafers"})
 
     @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
@@ -189,7 +248,7 @@ class OutfitRecommendationTests(APITestCase):
             top=self.top,
             bottom=self.bottom,
             shoes=self.shoes,
-            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            recommendation_text="A light smart-casual outfit for mild weather.",
             weather=None,
         )
         outfit.weather_id = None
@@ -221,7 +280,7 @@ class OutfitRecommendationTests(APITestCase):
             top=self.top,
             bottom=self.bottom,
             shoes=self.shoes,
-            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            recommendation_text="A light smart-casual outfit for mild weather.",
             weather=weather,
         )
         mock_generate_image.return_value = b"fake-image-bytes"
@@ -256,7 +315,7 @@ class OutfitRecommendationTests(APITestCase):
             top=self.top,
             bottom=self.bottom,
             shoes=self.shoes,
-            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            recommendation_text="A light smart-casual outfit for mild weather.",
             weather=weather,
         )
         mock_generate_image.side_effect = ValueError("provider down")

@@ -1,4 +1,3 @@
-import random
 from base64 import b64encode
 
 from asgiref.sync import async_to_sync
@@ -8,7 +7,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from services.openrouter import generate_image
-from services.recommendation import build_outfit_image_prompt, get_llm_recommendation
+from services.recommendation import (
+    build_outfit_image_prompt,
+    build_recommendation_text,
+    get_llm_recommendation,
+    score_clothing_match,
+)
 from services.weather import WeatherInfo, get_season_from_weather, get_weather_by_coordinates
 from wardrobe.models import ClothingItem
 
@@ -35,6 +39,26 @@ def _to_prompt_item(item: ClothingItem) -> dict[str, object]:
         "color_semantics": item.color_semantics,
         "description": item.description,
     }
+
+
+def _select_best_item(
+    items: list[ClothingItem],
+    category: str,
+    criteria: dict[str, object],
+    fallback_seasons: list[str],
+) -> ClothingItem | None:
+    category_items = [item for item in items if item.category == category]
+    if not category_items:
+        return None
+
+    scored = []
+    for item in category_items:
+        prompt_item = _to_prompt_item(item)
+        score = score_clothing_match(prompt_item, criteria, fallback_seasons)
+        scored.append((score, item.created_at, item))
+
+    scored.sort(key=lambda value: (-value[0], value[1], value[2].id))
+    return scored[0][2]
 
 
 def _snapshot_to_weather_info(snapshot: WeatherSnapshot) -> WeatherInfo:
@@ -81,35 +105,32 @@ class RecommendView(APIView):
 
         seasons = get_season_from_weather(weather)
         items = list(ClothingItem.objects.filter(owner=request.user))
-
-        def is_suitable(item):
-            return any(season in (item.season_semantics or []) for season in seasons)
-
-        tops = [item for item in items if item.category == "top" and is_suitable(item)]
-        bottoms = [item for item in items if item.category == "bottom" and is_suitable(item)]
-
-        if not tops:
-            tops = [item for item in items if item.category == "top"]
-        if not bottoms:
-            bottoms = [item for item in items if item.category == "bottom"]
-        shoes = [item for item in items if item.category == "shoes" and is_suitable(item)]
-        if not shoes:
-            shoes = [item for item in items if item.category == "shoes"]
-
-        suggested_top = random.choice(tops) if tops else None
-        suggested_bottom = random.choice(bottoms) if bottoms else None
-        suggested_shoes = random.choice(shoes) if shoes else None
+        prompt_items = [_to_prompt_item(item) for item in items]
+        tops = [item for item in prompt_items if item["category"] == "top"]
+        bottoms = [item for item in prompt_items if item["category"] == "bottom"]
+        shoes = [item for item in prompt_items if item["category"] == "shoes"]
 
         try:
-            recommendation_text = async_to_sync(get_llm_recommendation)(
+            recommendation = async_to_sync(get_llm_recommendation)(
                 weather,
                 seasons,
-                [_to_prompt_item(item) for item in tops],
-                [_to_prompt_item(item) for item in bottoms],
-                [_to_prompt_item(item) for item in shoes],
+                tops,
+                bottoms,
+                shoes,
             )
         except Exception:
             return Response({"detail": "recommendation unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        criteria = recommendation["recommendations"]
+        suggested_top = _select_best_item(items, "top", criteria["top"], seasons)
+        suggested_bottom = _select_best_item(items, "bottom", criteria["bottom"], seasons)
+        suggested_shoes = _select_best_item(items, "shoes", criteria["shoes"], seasons)
+        recommendation_text = build_recommendation_text(
+            recommendation,
+            top=_to_prompt_item(suggested_top) if suggested_top else None,
+            bottom=_to_prompt_item(suggested_bottom) if suggested_bottom else None,
+            shoes=_to_prompt_item(suggested_shoes) if suggested_shoes else None,
+        )
 
         weather_snapshot = WeatherSnapshot.objects.create(
             location=weather.location,
@@ -145,6 +166,7 @@ class RecommendView(APIView):
             {
                 "weather": weather_snapshot.raw,
                 "seasons": seasons,
+                "recommendation": recommendation,
                 "outfit": serializer.data,
                 "history": history_serializer.data,
             },

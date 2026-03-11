@@ -12,8 +12,10 @@
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="app-layout">
     <aside class="app-sidebar">
-      <h1 class="brand-title">SmartCloset</h1>
-      <p class="brand-subtitle">Wardrobe Control Center</p>
+      <div class="app-sidebar-header">
+        <h1 class="brand-title">SmartCloset</h1>
+        <p class="brand-subtitle">Wardrobe Control Center</p>
+      </div>
       <nav class="app-nav" aria-label="Main">
         <a class="app-nav-link" href="./dashboard.html">Dashboard</a>
         <a class="app-nav-link" href="./closet.html">My Closet</a>
@@ -32,7 +34,7 @@
           <div class="form-field">
             <p class="status-line">Use your browser's current GPS location to fetch live weather.</p>
           </div>
-          <div class="form-field" style="align-self:end;">
+          <div class="form-field form-submit-field">
             <button id="recommendBtn" class="btn btn-primary" type="submit">Generate OOTD</button>
           </div>
         </form>
@@ -43,7 +45,7 @@
       <section class="panel">
         <h3>Recommendation</h3>
         <p id="recommendText" class="status-line"></p>
-        <ul id="outfitItems" class="outfit-items"></ul>
+        <ul id="outfitItems" class="outfit-items recommendation-list"></ul>
       </section>
     </main>
   </div>

@@ -4,6 +4,9 @@
   padding: 0.5rem 0.9rem;
   cursor: pointer;
   font-weight: 600;
+  min-height: 44px;
+  text-align: center;
+  text-decoration: none;
 }
 
 .btn:disabled {
@@ -67,6 +70,7 @@ textarea:focus,
 .status-line {
   min-height: 1.25rem;
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
 .status-error {
@@ -81,6 +85,10 @@ textarea:focus,
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.item-actions > * {
+  flex: 1 1 10rem;
 }
 
 .status-badge {
@@ -107,5 +115,9 @@ textarea:focus,
 @media (max-width: 720px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .item-actions > * {
+    flex-basis: 100%;
   }
 }

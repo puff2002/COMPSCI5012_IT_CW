@@ -36,6 +36,9 @@ function setComposerVisible(visible: boolean): void {
   composer.setAttribute("aria-hidden", String(!visible));
   toggleButton.setAttribute("aria-expanded", String(visible));
   toggleButton.textContent = visible ? "Close" : "Add Item";
+  if (visible) {
+    composer.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function applyAnalysisToForm(analysis: ClothingAnalysis): void {

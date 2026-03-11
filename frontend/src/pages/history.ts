@@ -32,7 +32,9 @@ function renderHistory(): void {
           <h3>History #${entry.id}</h3>
           <p>${formatDate(entry.created_at)}</p>
         </header>
-        <p>Top: ${top} | Bottom: ${bottom} | Shoes: ${shoes}</p>
+        <p>Top: ${top}</p>
+        <p>Bottom: ${bottom}</p>
+        <p>Shoes: ${shoes}</p>
         <p>Rating: ${entry.rating ?? "Not rated"}</p>
         <p>Feedback: ${entry.feedback || "No feedback"}</p>
         <div class="item-actions">

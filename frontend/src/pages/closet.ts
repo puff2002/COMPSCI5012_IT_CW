@@ -41,6 +41,12 @@ function setComposerVisible(visible: boolean): void {
   }
 }
 
+function setDetailsCardVisible(visible: boolean): void {
+  const detailsCard = requireElement<HTMLElement>("#itemDetailsCard");
+  detailsCard.classList.toggle("is-hidden", !visible);
+  detailsCard.setAttribute("aria-hidden", String(!visible));
+}
+
 function applyAnalysisToForm(analysis: ClothingAnalysis): void {
   requireElement<HTMLSelectElement>("#itemCategory").value = analysis.category;
   requireElement<HTMLInputElement>("#itemName").value = analysis.item;
@@ -109,6 +115,7 @@ function resetForm(): void {
   text("#itemError", "");
   text("#uploadStatus", "");
   text("#itemImageStatus", "");
+  setDetailsCardVisible(false);
 }
 
 async function submitItem(event: SubmitEvent): Promise<void> {
@@ -185,6 +192,7 @@ async function onGridClick(event: Event): Promise<void> {
     setComposerVisible(true);
     editingId = id;
     uploadedImageFile = null;
+    setDetailsCardVisible(true);
     text("#itemFormTitle", `Edit Item #${id}`);
     requireElement<HTMLSelectElement>("#itemCategory").value = existing.category;
     requireElement<HTMLInputElement>("#itemName").value = existing.item;
@@ -225,6 +233,7 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
     editingId = null;
     uploadedImageFile = normalizedFile;
     setComposerVisible(true);
+    setDetailsCardVisible(true);
     text("#itemFormTitle", "Add New Item");
     applyAnalysisToForm(analysis);
     text("#itemImageStatus", `Image ready to save: ${normalizedFile.name}`);
@@ -241,6 +250,7 @@ function init(): void {
   requireAuth();
   setActiveNav();
   setComposerVisible(false);
+  setDetailsCardVisible(false);
 
   requireElement<HTMLFormElement>("#itemForm").addEventListener("submit", (event) => {
     void submitItem(event as SubmitEvent);
@@ -252,7 +262,10 @@ function init(): void {
   requireElement<HTMLButtonElement>("#toggleComposerBtn").addEventListener("click", () => {
     const isHidden = requireElement<HTMLElement>("#closetComposer").classList.contains("is-hidden");
     setComposerVisible(isHidden);
-    if (!isHidden) {
+    if (isHidden) {
+      resetForm();
+      text("#uploadStatus", "Upload a clothing image to auto-fill the details card.");
+    } else {
       resetForm();
     }
   });

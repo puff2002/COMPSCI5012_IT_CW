@@ -74,6 +74,26 @@
   display: none;
 }
 
+.composer-topbar h3,
+.composer-topbar .muted {
+  margin: 0;
+}
+
+.composer-topbar {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.composer-upload-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.closet-details-card.is-hidden {
+  display: none;
+}
+
 .item-card,
 .history-card {
   background: var(--panel-alt);

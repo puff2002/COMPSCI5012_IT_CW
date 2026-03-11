@@ -20,8 +20,6 @@ class ConfigView(APIView):
             model=request.data.get("model"),
             removebg_api_key=request.data.get("removebg_api_key"),
             bg_removal_method=request.data.get("bg_removal_method"),
-            qweather_api_key=request.data.get("qweather_api_key"),
-            qweather_api_host=request.data.get("qweather_api_host"),
         )
         if hasattr(config, "model_dump"):
             data = config.model_dump()

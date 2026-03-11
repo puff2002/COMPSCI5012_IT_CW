@@ -91,9 +91,6 @@ export interface IntegrationConfigMasked {
   removebg_api_key_masked: string;
   has_removebg_key: boolean;
   bg_removal_method: string;
-  qweather_api_key_masked: string;
-  has_qweather_key: boolean;
-  qweather_api_host: string;
 }
 
 export interface IntegrationConfigUpdate {
@@ -102,6 +99,4 @@ export interface IntegrationConfigUpdate {
   model: string;
   removebg_api_key: string;
   bg_removal_method: string;
-  qweather_api_key: string;
-  qweather_api_host: string;
 }

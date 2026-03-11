@@ -1,306 +1,279 @@
 """
-天气服务 - 和风天气 API 集成
-文档: https://dev.qweather.com/docs/api/weather/weather-now/
-GeoAPI: https://dev.qweather.com/docs/api/geoapi/city-lookup/
+Weather service backed by Open-Meteo.
+Docs:
+- https://open-meteo.com/en/docs/geocoding-api
+- https://open-meteo.com/en/docs
 """
+import base64
+import json
+from typing import List, Optional
+
 import httpx
-import os
-from typing import Optional, List
 from pydantic import BaseModel
 
 
+GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+
 class CityInfo(BaseModel):
-    """城市信息"""
-    name: str  # 城市名称
-    id: str  # LocationID
-    adm1: str  # 省份
-    adm2: str  # 市
-    country: str  # 国家
-    lat: str  # 纬度
-    lon: str  # 经度
-
-
-class WeatherNow(BaseModel):
-    """实时天气数据"""
-    obsTime: str  # 数据观测时间
-    temp: str  # 温度，默认单位：摄氏度
-    feelsLike: str  # 体感温度
-    icon: str  # 天气状况图标代码
-    text: str  # 天气状况的文字描述
-    wind360: str  # 风向360角度
-    windDir: str  # 风向
-    windScale: str  # 风力等级
-    windSpeed: str  # 风速，公里/小时
-    humidity: str  # 相对湿度，百分比数值
-    precip: str  # 过去1小时降水量，默认单位：毫米
-    pressure: str  # 大气压强，默认单位：百帕
-    vis: str  # 能见度，默认单位：公里
-    cloud: Optional[str] = None  # 云量，百分比数值
-    dew: Optional[str] = None  # 露点温度
-
-
-class WeatherResponse(BaseModel):
-    """和风天气 API 响应"""
-    code: str  # 状态码
-    updateTime: str  # API最近更新时间
-    fxLink: str  # 响应式页面链接
-    now: WeatherNow  # 实时天气数据
+    """City search result."""
+    name: str
+    id: str
+    adm1: str
+    adm2: str
+    country: str
+    lat: str
+    lon: str
 
 
 class WeatherInfo(BaseModel):
-    """简化的天气信息（用于应用）"""
-    temperature: float  # 温度
-    feelsLike: float  # 体感温度
-    condition: str  # 天气状况文字
-    icon: str  # 天气图标代码
-    humidity: float  # 湿度
-    windDir: str  # 风向
-    windScale: str  # 风力等级
-    location: str  # 位置
-    obsTime: str  # 观测时间
+    """Simplified weather payload used by the app."""
+    temperature: float
+    feelsLike: float
+    condition: str
+    icon: str
+    humidity: float
+    windDir: str
+    windScale: str
+    location: str
+    obsTime: str
 
 
-# 常用城市列表（免费API降级方案）
-COMMON_CITIES = [
-    {"name": "北京", "adm1": "北京市", "country": "中国", "id": "101010100", "keywords": ["beijing", "北京", "bj"]},
-    {"name": "上海", "adm1": "上海市", "country": "中国", "id": "101020100", "keywords": ["shanghai", "上海", "sh"]},
-    {"name": "广州", "adm1": "广东省", "country": "中国", "id": "101280101", "keywords": ["guangzhou", "广州", "gz"]},
-    {"name": "深圳", "adm1": "广东省", "country": "中国", "id": "101280601", "keywords": ["shenzhen", "深圳", "sz"]},
-    {"name": "杭州", "adm1": "浙江省", "country": "中国", "id": "101210101", "keywords": ["hangzhou", "杭州", "hz"]},
-    {"name": "成都", "adm1": "四川省", "country": "中国", "id": "101270101", "keywords": ["chengdu", "成都", "cd"]},
-    {"name": "重庆", "adm1": "重庆市", "country": "中国", "id": "101040100", "keywords": ["chongqing", "重庆", "cq"]},
-    {"name": "武汉", "adm1": "湖北省", "country": "中国", "id": "101200101", "keywords": ["wuhan", "武汉", "wh"]},
-    {"name": "西安", "adm1": "陕西省", "country": "中国", "id": "101110101", "keywords": ["xian", "西安", "xa"]},
-    {"name": "南京", "adm1": "江苏省", "country": "中国", "id": "101190101", "keywords": ["nanjing", "南京", "nj"]},
-    {"name": "天津", "adm1": "天津市", "country": "中国", "id": "101030100", "keywords": ["tianjin", "天津", "tj"]},
-    {"name": "苏州", "adm1": "江苏省", "country": "中国", "id": "101190401", "keywords": ["suzhou", "苏州", "su"]},
-    {"name": "长沙", "adm1": "湖南省", "country": "中国", "id": "101250101", "keywords": ["changsha", "长沙", "cs"]},
-    {"name": "郑州", "adm1": "河南省", "country": "中国", "id": "101180101", "keywords": ["zhengzhou", "郑州", "zz"]},
-    {"name": "济南", "adm1": "山东省", "country": "中国", "id": "101120101", "keywords": ["jinan", "济南", "jn"]},
-    {"name": "青岛", "adm1": "山东省", "country": "中国", "id": "101120201", "keywords": ["qingdao", "青岛", "qd"]},
-    {"name": "厦门", "adm1": "福建省", "country": "中国", "id": "101230201", "keywords": ["xiamen", "厦门", "xm"]},
-    {"name": "大连", "adm1": "辽宁省", "country": "中国", "id": "101070201", "keywords": ["dalian", "大连", "dl"]},
-    {"name": "沈阳", "adm1": "辽宁省", "country": "中国", "id": "101070101", "keywords": ["shenyang", "沈阳", "sy"]},
-    {"name": "哈尔滨", "adm1": "黑龙江", "country": "中国", "id": "101050101", "keywords": ["haerbin", "哈尔滨", "heb"]},
-]
+WEATHER_CODE_MAP = {
+    0: ("Clear sky", "100"),
+    1: ("Mainly clear", "101"),
+    2: ("Partly cloudy", "102"),
+    3: ("Overcast", "104"),
+    45: ("Fog", "500"),
+    48: ("Depositing rime fog", "501"),
+    51: ("Light drizzle", "300"),
+    53: ("Moderate drizzle", "301"),
+    55: ("Dense drizzle", "302"),
+    56: ("Light freezing drizzle", "313"),
+    57: ("Dense freezing drizzle", "314"),
+    61: ("Slight rain", "305"),
+    63: ("Moderate rain", "306"),
+    65: ("Heavy rain", "307"),
+    66: ("Light freezing rain", "311"),
+    67: ("Heavy freezing rain", "312"),
+    71: ("Slight snow", "400"),
+    73: ("Moderate snow", "401"),
+    75: ("Heavy snow", "402"),
+    77: ("Snow grains", "407"),
+    80: ("Slight rain showers", "350"),
+    81: ("Moderate rain showers", "351"),
+    82: ("Violent rain showers", "352"),
+    85: ("Slight snow showers", "456"),
+    86: ("Heavy snow showers", "457"),
+    95: ("Thunderstorm", "302"),
+    96: ("Thunderstorm with slight hail", "303"),
+    99: ("Thunderstorm with heavy hail", "304"),
+}
+
+
+def _encode_location_token(result: dict) -> str:
+    payload = json.dumps(
+        {
+            "name": result.get("name", ""),
+            "adm1": result.get("admin1", "") or "",
+            "adm2": result.get("admin2", "") or "",
+            "country": result.get("country", "") or "",
+            "lat": result.get("latitude"),
+            "lon": result.get("longitude"),
+        },
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_location_token(location: str) -> Optional[dict]:
+    try:
+        padding = "=" * (-len(location) % 4)
+        decoded = base64.urlsafe_b64decode(f"{location}{padding}")
+        data = json.loads(decoded.decode("utf-8"))
+        lat = float(data["lat"])
+        lon = float(data["lon"])
+        return {
+            "name": str(data.get("name", "")).strip(),
+            "adm1": str(data.get("adm1", "")).strip(),
+            "adm2": str(data.get("adm2", "")).strip(),
+            "country": str(data.get("country", "")).strip(),
+            "lat": lat,
+            "lon": lon,
+        }
+    except Exception:
+        return None
+
+
+def _location_label(data: dict) -> str:
+    parts = [data.get("name", "").strip(), data.get("adm1", "").strip(), data.get("country", "").strip()]
+    return ", ".join(part for part in parts if part)
+
+
+def _wind_direction(degrees: float) -> str:
+    labels = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    normalized = degrees % 360
+    index = int((normalized + 22.5) // 45) % len(labels)
+    return labels[index]
+
+
+def _wind_scale(speed_kmh: float) -> str:
+    # Beaufort scale using km/h thresholds.
+    thresholds = [1, 6, 12, 20, 29, 39, 50, 62, 75, 89, 103, 118]
+    for index, threshold in enumerate(thresholds):
+        if speed_kmh < threshold:
+            return str(index)
+    return "12"
+
+
+def _weather_condition(code: int) -> tuple[str, str]:
+    return WEATHER_CODE_MAP.get(code, ("Unknown", str(code)))
 
 
 async def search_city(query: str, limit: int = 10) -> List[CityInfo]:
-    """
-    搜索城市（支持模糊查询）
-    优先使用和风天气GeoAPI，如果失败则使用预定义城市列表
-    
-    Args:
-        query: 城市名称关键词（支持中文、拼音）
-        limit: 返回结果数量限制
-        
-    Returns:
-        城市信息列表
-    """
-    # 优先从配置系统读取 API Key
-    try:
-        from storage.config_store import load_config
-        config = load_config()
-        api_key = config.qweather_api_key
-        api_host = config.qweather_api_host
-    except Exception:
-        api_key = os.getenv("QWEATHER_API_KEY")
-        api_host = os.getenv("QWEATHER_API_HOST", "devapi.qweather.com")
-    
-    # 如果有API Key，尝试使用GeoAPI
-    if api_key and api_key != "your_qweather_api_key_here":
-        try:
-            url = f"https://{api_host}/geo/v2/city/lookup"
-            params = {"location": query, "number": limit, "lang": "zh"}
-            headers = {"Authorization": f"Bearer {api_key}"}
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, params=params, headers=headers, timeout=10.0)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get("code") == "200" and data.get("location"):
-                        cities = []
-                        for location in data.get("location", []):
-                            cities.append(CityInfo(
-                                name=location.get("name"),
-                                id=location.get("id"),
-                                adm1=location.get("adm1"),
-                                adm2=location.get("adm2"),
-                                country=location.get("country"),
-                                lat=location.get("lat"),
-                                lon=location.get("lon")
-                            ))
-                        return cities
-        except Exception as e:
-            print(f"⚠️  GeoAPI调用失败，使用预定义城市列表: {e}")
-    
-    # 降级方案：使用预定义城市列表进行模糊搜索
-    query_lower = query.lower()
-    matched_cities = []
-    
-    for city_data in COMMON_CITIES:
-        # 检查是否匹配任何关键词
-        if any(query_lower in keyword.lower() for keyword in city_data["keywords"]):
-            matched_cities.append(CityInfo(
-                name=city_data["name"],
-                id=city_data["id"],
-                adm1=city_data["adm1"],
-                adm2=city_data["adm1"],  # 使用adm1作为adm2
-                country=city_data["country"],
-                lat="0",  # 预定义列表不包含坐标
-                lon="0"
-            ))
-    
-    return matched_cities[:limit]
-
-
-async def get_qweather_now(location: str) -> Optional[WeatherResponse]:
-    """
-    调用和风天气 API 获取实时天气
-    
-    Args:
-        location: LocationID 或 经纬度坐标(逗号分隔，如 "116.41,39.92")
-        
-    Returns:
-        WeatherResponse 或 None（失败时）
-    
-    示例:
-        - location="101010100" (北京的LocationID)
-        - location="116.41,39.92" (经纬度坐标)
-    """
-    # 优先从配置系统读取 API Key
-    try:
-        from storage.config_store import load_config
-        config = load_config()
-        api_key = config.qweather_api_key
-        api_host = config.qweather_api_host
-    except Exception:
-        # 回退到环境变量
-        api_key = os.getenv("QWEATHER_API_KEY")
-        api_host = os.getenv("QWEATHER_API_HOST", "devapi.qweather.com")
-    
-    if not api_key or api_key == "your_qweather_api_key_here":
-        print("⚠️  和风天气 API Key 未配置，请在前端设置界面或 .env 文件中配置")
-        return None
-    
-    url = f"https://{api_host}/v7/weather/now"
-    params = {
-        "location": location,
-        "key": api_key
-    }
-    
+    """Search cities with Open-Meteo's geocoding API."""
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params, timeout=10.0)
+            response = await client.get(
+                GEOCODING_URL,
+                params={"name": query, "count": limit, "language": "en", "format": "json"},
+                timeout=10.0,
+            )
             response.raise_for_status()
-            data = response.json()
-            
-            if data.get("code") != "200":
-                print(f"❌ 和风天气 API 错误: code={data.get('code')}")
-                return None
-            
-            return WeatherResponse(**data)
-    
-    except Exception as e:
-        print(f"❌ 获取天气信息失败: {e}")
+    except Exception as exc:
+        print(f"Failed to search cities: {exc}")
+        return []
+
+    results = response.json().get("results", []) or []
+    cities: List[CityInfo] = []
+    for result in results:
+        token = _encode_location_token(result)
+        cities.append(
+            CityInfo(
+                name=result.get("name", ""),
+                id=token,
+                adm1=result.get("admin1", "") or "",
+                adm2=result.get("admin2", "") or "",
+                country=result.get("country", "") or "",
+                lat=str(result.get("latitude", "")),
+                lon=str(result.get("longitude", "")),
+            )
+        )
+    return cities
+
+
+async def get_weather(location: str) -> Optional[WeatherInfo]:
+    """Fetch current weather for an encoded Open-Meteo location token."""
+    location_data = _decode_location_token(location)
+    if not location_data:
+        print("Invalid weather location token")
         return None
 
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                FORECAST_URL,
+                params={
+                    "latitude": location_data["lat"],
+                    "longitude": location_data["lon"],
+                    "current": ",".join(
+                        [
+                            "temperature_2m",
+                            "relative_humidity_2m",
+                            "apparent_temperature",
+                            "weather_code",
+                            "wind_speed_10m",
+                            "wind_direction_10m",
+                        ]
+                    ),
+                    "timezone": "auto",
+                },
+                timeout=10.0,
+            )
+            response.raise_for_status()
+    except Exception as exc:
+        print(f"Failed to fetch weather: {exc}")
+        return None
 
-async def get_weather(location: str = "101020100") -> Optional[WeatherInfo]:
-    """
-    获取天气信息（简化版）
-    
-    Args:
-        location: LocationID 或 经纬度坐标
-                 默认: 101020100 (上海)
-                 
-    Returns:
-        WeatherInfo 或 None
-    """
-    weather_response = await get_qweather_now(location)
-    
-    if not weather_response:
-        # 返回模拟数据作为降级方案
-        print("⚠️  使用模拟天气数据")
-        return WeatherInfo(
-            temperature=20.0,
-            feelsLike=22.0,
-            condition="晴",
-            icon="100",
-            humidity=60.0,
-            windDir="南风",
-            windScale="2",
-            location=location,
-            obsTime="2024-01-01T12:00+08:00"
-        )
-    
-    now = weather_response.now
+    current = response.json().get("current")
+    if not current:
+        return None
+
+    code = int(current.get("weather_code", -1))
+    condition, icon = _weather_condition(code)
+    wind_speed = float(current.get("wind_speed_10m", 0.0))
+    wind_degrees = float(current.get("wind_direction_10m", 0.0))
+
     return WeatherInfo(
-        temperature=float(now.temp),
-        feelsLike=float(now.feelsLike),
-        condition=now.text,
-        icon=now.icon,
-        humidity=float(now.humidity),
-        windDir=now.windDir,
-        windScale=now.windScale,
-        location=location,
-        obsTime=now.obsTime
+        temperature=float(current.get("temperature_2m", 0.0)),
+        feelsLike=float(current.get("apparent_temperature", 0.0)),
+        condition=condition,
+        icon=icon,
+        humidity=float(current.get("relative_humidity_2m", 0.0)),
+        windDir=_wind_direction(wind_degrees),
+        windScale=_wind_scale(wind_speed),
+        location=_location_label(location_data),
+        obsTime=str(current.get("time", "")),
     )
 
 
 def get_season_from_weather(weather: WeatherInfo) -> list[str]:
     """
     根据天气推断适合的季节标签
-    
+
     Args:
         weather: 天气信息
-        
+
     Returns:
         季节标签列表
     """
     temp = weather.temperature
-    
-    if temp < 10:
-        return ["冬"]
-    elif temp < 20:
-        return ["春", "秋"]
+    seasons = []
+
+    if temp <= 10:
+        seasons.extend(["winter", "autumn"])
+    elif temp <= 20:
+        seasons.extend(["spring", "autumn"])
     else:
-        return ["夏"]
+        seasons.extend(["summer", "spring"])
+
+    return list(dict.fromkeys(seasons))
 
 
 def get_clothing_suggestion(weather: WeatherInfo) -> str:
     """
-    根据天气推荐穿搭建议
-    
+    根据天气生成穿搭建议
+
     Args:
         weather: 天气信息
-        
+
     Returns:
-        穿搭建议文字
+        穿搭建议文本
     """
     temp = weather.temperature
     feels_like = weather.feelsLike
-    condition = weather.condition
-    
-    # 基于温度的建议
-    if feels_like < 0:
-        suggestion = "🧥 建议穿厚羽绒服、棉衣等保暖衣物"
-    elif feels_like < 10:
-        suggestion = "🧥 建议穿风衣、大衣、夹克等外套"
-    elif feels_like < 20:
-        suggestion = "👔 建议穿薄外套、长袖衬衫、卫衣"
-    elif feels_like < 28:
-        suggestion = "👕 建议穿短袖、薄长袖等轻便衣物"
+    condition = weather.condition.lower()
+
+    suggestions = []
+
+    if feels_like <= 5:
+        suggestions.append("天气很冷，建议穿厚外套、毛衣、长裤，注意保暖。")
+    elif feels_like <= 15:
+        suggestions.append("天气较凉，建议穿外套或针织衫搭配长裤。")
+    elif feels_like <= 25:
+        suggestions.append("天气舒适，适合衬衫、T恤搭配长裤或裙装。")
     else:
-        suggestion = "👕 建议穿短袖、短裤等夏季清凉衣物"
-    
-    # 根据天气状况补充建议
-    if "雨" in condition:
-        suggestion += "，记得带伞☂️"
-    elif "雪" in condition:
-        suggestion += "，注意防滑保暖❄️"
-    elif "晴" in condition and feels_like > 25:
-        suggestion += "，注意防晒☀️"
-    
-    return suggestion
+        suggestions.append("天气炎热，建议穿轻薄透气的夏装。")
+
+    if "rain" in condition or "drizzle" in condition or "shower" in condition:
+        suggestions.append("有降水，建议带伞并选择防水鞋。")
+    if "snow" in condition:
+        suggestions.append("有降雪，建议穿防滑保暖的鞋靴。")
+    if "thunderstorm" in condition:
+        suggestions.append("有雷暴，建议减少户外停留并做好防雨。")
+    if "fog" in condition:
+        suggestions.append("有雾，外出注意能见度变化。")
+
+    return " ".join(suggestions)

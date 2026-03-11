@@ -32,9 +32,7 @@ def update_config(
     api_key: Optional[str] = None, 
     model: Optional[str] = None,
     removebg_api_key: Optional[str] = None,
-    bg_removal_method: Optional[str] = None,
-    qweather_api_key: Optional[str] = None,
-    qweather_api_host: Optional[str] = None
+    bg_removal_method: Optional[str] = None
 ) -> LLMConfig:
     """更新配置"""
     config = load_config()
@@ -49,10 +47,6 @@ def update_config(
         config.removebg_api_key = removebg_api_key.strip()
     if bg_removal_method is not None:
         config.bg_removal_method = bg_removal_method
-    if qweather_api_key is not None:
-        config.qweather_api_key = qweather_api_key.strip()
-    if qweather_api_host is not None:
-        config.qweather_api_host = qweather_api_host.strip()
     
     save_config(config)
     return config
@@ -79,7 +73,4 @@ def get_masked_config() -> dict:
         "removebg_api_key_masked": _mask_key(config.removebg_api_key),
         "has_removebg_key": bool(config.removebg_api_key),
         "bg_removal_method": config.bg_removal_method,
-        "qweather_api_key_masked": _mask_key(config.qweather_api_key),
-        "has_qweather_key": bool(config.qweather_api_key),
-        "qweather_api_host": config.qweather_api_host
     }

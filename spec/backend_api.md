@@ -293,10 +293,7 @@ GET `/api/integrations/config/`
   "model": "",
   "removebg_api_key_masked": "****",
   "has_removebg_key": false,
-  "bg_removal_method": "removebg",
-  "qweather_api_key_masked": "****",
-  "has_qweather_key": false,
-  "qweather_api_host": "devapi.qweather.com"
+  "bg_removal_method": "removebg"
 }
 ```
 
@@ -309,9 +306,7 @@ POST `/api/integrations/config/`
   "api_key": "",
   "model": "",
   "removebg_api_key": "",
-  "bg_removal_method": "removebg",
-  "qweather_api_key": "",
-  "qweather_api_host": "devapi.qweather.com"
+  "bg_removal_method": "removebg"
 }
 ```
 响应 200:
@@ -322,9 +317,7 @@ POST `/api/integrations/config/`
   "api_key": "",
   "model": "",
   "removebg_api_key": "",
-  "bg_removal_method": "removebg",
-  "qweather_api_key": "",
-  "qweather_api_host": "devapi.qweather.com"
+  "bg_removal_method": "removebg"
 }
 ```
 
@@ -333,7 +326,7 @@ GET `/api/integrations/weather/search/?query=beijing`
 响应 200:
 ```json
 [
-  { "name": "北京", "id": "101010100", "adm1": "北京市", "adm2": "北京市", "country": "中国", "lat": "0", "lon": "0" }
+  { "name": "Beijing", "id": "eyJuYW1lIjoiQmVpamluZyIsImFkbTEiOiJCZWlqaW5nIiwiYWRtMiI6IiIsImNvdW50cnkiOiJDaGluYSIsImxhdCI6MzkuOTA3NSwibG9uIjoxMTYuMzk3MjN9", "adm1": "Beijing", "adm2": "", "country": "China", "lat": "39.9075", "lon": "116.39723" }
 ]
 ```
 失败 400:
@@ -341,20 +334,20 @@ GET `/api/integrations/weather/search/?query=beijing`
 { "detail": "query required" }
 ```
 
-GET `/api/integrations/weather/now/?location=101020100`  
+GET `/api/integrations/weather/now/?location=<opaque-location-token>`  
 说明: 当前天气  
 响应 200:
 ```json
 {
   "temperature": 18.0,
   "feelsLike": 17.0,
-  "condition": "多云",
+  "condition": "Partly cloudy",
   "icon": "101",
   "humidity": 60,
-  "windDir": "东北风",
+  "windDir": "NE",
   "windScale": "2",
-  "location": "上海",
-  "obsTime": "2026-03-04T12:00:00Z"
+  "location": "Shanghai, Shanghai, China",
+  "obsTime": "2026-03-04T12:00"
 }
 ```
 失败 400:

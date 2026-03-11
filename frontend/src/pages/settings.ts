@@ -24,9 +24,8 @@ async function loadSettings(): Promise<void> {
     requireElement<HTMLInputElement>("#apiBase").value = config.api_base;
     requireElement<HTMLInputElement>("#model").value = config.model;
     requireElement<HTMLInputElement>("#bgMethod").value = config.bg_removal_method;
-    requireElement<HTMLInputElement>("#weatherHost").value = config.qweather_api_host;
 
-    text("#maskedKeys", `LLM key: ${config.api_key_masked} | RemoveBG: ${config.removebg_api_key_masked} | QWeather: ${config.qweather_api_key_masked}`);
+    text("#maskedKeys", `LLM key: ${config.api_key_masked} | RemoveBG: ${config.removebg_api_key_masked}`);
     text("#settingsStatus", "Settings loaded.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load settings.";
@@ -44,9 +43,7 @@ async function saveConfig(event: SubmitEvent): Promise<void> {
     api_key: requireElement<HTMLInputElement>("#apiKey").value.trim(),
     model: requireElement<HTMLInputElement>("#model").value.trim(),
     removebg_api_key: requireElement<HTMLInputElement>("#removeBgKey").value.trim(),
-    bg_removal_method: requireElement<HTMLInputElement>("#bgMethod").value.trim(),
-    qweather_api_key: requireElement<HTMLInputElement>("#weatherKey").value.trim(),
-    qweather_api_host: requireElement<HTMLInputElement>("#weatherHost").value.trim()
+    bg_removal_method: requireElement<HTMLInputElement>("#bgMethod").value.trim()
   };
 
   try {
@@ -54,7 +51,6 @@ async function saveConfig(event: SubmitEvent): Promise<void> {
     text("#settingsStatus", "Config saved.");
     requireElement<HTMLInputElement>("#apiKey").value = "";
     requireElement<HTMLInputElement>("#removeBgKey").value = "";
-    requireElement<HTMLInputElement>("#weatherKey").value = "";
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save config.";
     text("#configError", message);

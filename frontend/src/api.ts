@@ -4,8 +4,6 @@ import { parseError } from "./ui.js";
 import type {
   AuthTokens,
   ClothingItem,
-  IntegrationConfigMasked,
-  IntegrationConfigUpdate,
   OutfitHistory,
   RecommendationResponse,
   User,
@@ -170,10 +168,11 @@ export async function deleteClosetItem(id: number): Promise<void> {
   }
 }
 
-export async function uploadClosetImage(file: File): Promise<ClothingItem> {
+export async function uploadClosetImage(file: File, removeBackground = false): Promise<ClothingItem> {
   const token = getAccessToken();
   const form = new FormData();
   form.append("file", file);
+  form.append("remove_background", String(removeBackground));
   const response = await fetch(`${API_BASE}/wardrobe/items/upload/`, {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -182,11 +181,11 @@ export async function uploadClosetImage(file: File): Promise<ClothingItem> {
   return parseJson<ClothingItem>(response);
 }
 
-export async function recommend(location: string): Promise<RecommendationResponse> {
+export async function recommend(latitude: number, longitude: number): Promise<RecommendationResponse> {
   const response = await request("/outfits/recommend/", {
     method: "POST",
     json: true,
-    body: JSON.stringify({ location })
+    body: JSON.stringify({ latitude, longitude })
   });
   return parseJson<RecommendationResponse>(response);
 }
@@ -219,18 +218,4 @@ export async function deleteHistory(id: number): Promise<void> {
   if (!response.ok && response.status !== 204) {
     throw new Error(await parseError(response));
   }
-}
-
-export async function getIntegrationConfig(): Promise<IntegrationConfigMasked> {
-  const response = await request("/integrations/config/");
-  return parseJson<IntegrationConfigMasked>(response);
-}
-
-export async function updateIntegrationConfig(payload: IntegrationConfigUpdate): Promise<IntegrationConfigUpdate> {
-  const response = await request("/integrations/config/", {
-    method: "POST",
-    json: true,
-    body: JSON.stringify(payload)
-  });
-  return parseJson<IntegrationConfigUpdate>(response);
 }

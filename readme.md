@@ -50,6 +50,7 @@ Then open:
 The app now uses OpenRouter for:
 
 - clothing image analysis during wardrobe upload
+- clothing image background removal during wardrobe upload
 - outfit recommendation text in the OOTD flow
 
 Configure it by environment variables.
@@ -60,12 +61,14 @@ Recommended defaults:
 OPENROUTER_API_BASE=https://openrouter.ai/api/v1
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 OPENROUTER_MODEL=openai/gpt-4o-mini
+OPENROUTER_IMAGE_MODEL=openai/gpt-image-1
 ```
 
 Notes:
 
 - the selected model must support image input if you want wardrobe image analysis to work
-- if the LLM request fails during outfit recommendation, the backend falls back to a basic non-LLM recommendation
+- the selected image model must support image editing if you want wardrobe background removal to work
+- if the LLM request fails during outfit recommendation, the backend returns an error instead of a fallback recommendation
 - Gemini is no longer used by this project
 
 ## 3. Nginx Config (Frontend + API Reverse Proxy)

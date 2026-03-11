@@ -12,19 +12,32 @@ function setActiveNav(): void {
   });
 }
 
+function getCurrentPosition(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocation is not supported in this browser."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 300000
+    });
+  });
+}
+
 async function generate(event?: SubmitEvent): Promise<void> {
   event?.preventDefault();
-  const location = requireElement<HTMLInputElement>("#cityQuery").value.trim();
-  if (!location) {
-    text("#ootdStatus", "Enter a city before generating a recommendation.");
-    return;
-  }
 
   toggleDisabled("#recommendBtn", true);
-  text("#ootdStatus", "Generating recommendation...");
+  text("#ootdStatus", "Getting your current location...");
 
   try {
-    const data = await recommend(location);
+    const position = await getCurrentPosition();
+    text("#ootdStatus", "Generating recommendation...");
+
+    const data = await recommend(position.coords.latitude, position.coords.longitude);
     const top = data.outfit.top_detail?.item ?? "None";
     const bottom = data.outfit.bottom_detail?.item ?? "None";
     const shoes = data.outfit.shoes_detail?.item ?? "None";
@@ -41,7 +54,7 @@ async function generate(event?: SubmitEvent): Promise<void> {
     text("#ootdStatus", "Recommendation generated and history was auto-created.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Recommendation failed.";
-    text("#ootdStatus", `${message} Fallback: use manual outfit selection from closet + history form.`);
+    text("#ootdStatus", message);
   } finally {
     toggleDisabled("#recommendBtn", false);
   }
@@ -50,11 +63,8 @@ async function generate(event?: SubmitEvent): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
-  requireElement<HTMLFormElement>("#citySearchForm").addEventListener("submit", (event) => {
+  requireElement<HTMLFormElement>("#locationForm").addEventListener("submit", (event) => {
     void generate(event as SubmitEvent);
-  });
-  requireElement<HTMLButtonElement>("#recommendBtn").addEventListener("click", () => {
-    void generate();
   });
 }
 

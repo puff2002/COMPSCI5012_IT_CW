@@ -1,30 +1,15 @@
 """
 Weather service backed by Open-Meteo.
 Docs:
-- https://open-meteo.com/en/docs/geocoding-api
 - https://open-meteo.com/en/docs
 """
-import base64
-import json
-from typing import List, Optional
+from typing import Optional
 
 import httpx
 from pydantic import BaseModel
 
 
-GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
-
-
-class CityInfo(BaseModel):
-    """City search result."""
-    name: str
-    id: str
-    adm1: str
-    adm2: str
-    country: str
-    lat: str
-    lon: str
 
 
 class WeatherInfo(BaseModel):
@@ -72,44 +57,8 @@ WEATHER_CODE_MAP = {
 }
 
 
-def _encode_location_token(result: dict) -> str:
-    payload = json.dumps(
-        {
-            "name": result.get("name", ""),
-            "adm1": result.get("admin1", "") or "",
-            "adm2": result.get("admin2", "") or "",
-            "country": result.get("country", "") or "",
-            "lat": result.get("latitude"),
-            "lon": result.get("longitude"),
-        },
-        separators=(",", ":"),
-        ensure_ascii=True,
-    ).encode("utf-8")
-    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
-
-
-def _decode_location_token(location: str) -> Optional[dict]:
-    try:
-        padding = "=" * (-len(location) % 4)
-        decoded = base64.urlsafe_b64decode(f"{location}{padding}")
-        data = json.loads(decoded.decode("utf-8"))
-        lat = float(data["lat"])
-        lon = float(data["lon"])
-        return {
-            "name": str(data.get("name", "")).strip(),
-            "adm1": str(data.get("adm1", "")).strip(),
-            "adm2": str(data.get("adm2", "")).strip(),
-            "country": str(data.get("country", "")).strip(),
-            "lat": lat,
-            "lon": lon,
-        }
-    except Exception:
-        return None
-
-
-def _location_label(data: dict) -> str:
-    parts = [data.get("name", "").strip(), data.get("adm1", "").strip(), data.get("country", "").strip()]
-    return ", ".join(part for part in parts if part)
+def _location_label(latitude: float, longitude: float) -> str:
+    return f"{latitude:.4f}, {longitude:.4f}"
 
 
 def _wind_direction(degrees: float) -> str:
@@ -132,52 +81,15 @@ def _weather_condition(code: int) -> tuple[str, str]:
     return WEATHER_CODE_MAP.get(code, ("Unknown", str(code)))
 
 
-async def search_city(query: str, limit: int = 10) -> List[CityInfo]:
-    """Search cities with Open-Meteo's geocoding API."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                GEOCODING_URL,
-                params={"name": query, "count": limit, "language": "en", "format": "json"},
-                timeout=10.0,
-            )
-            response.raise_for_status()
-    except Exception as exc:
-        print(f"Failed to search cities: {exc}")
-        return []
-
-    results = response.json().get("results", []) or []
-    cities: List[CityInfo] = []
-    for result in results:
-        token = _encode_location_token(result)
-        cities.append(
-            CityInfo(
-                name=result.get("name", ""),
-                id=token,
-                adm1=result.get("admin1", "") or "",
-                adm2=result.get("admin2", "") or "",
-                country=result.get("country", "") or "",
-                lat=str(result.get("latitude", "")),
-                lon=str(result.get("longitude", "")),
-            )
-        )
-    return cities
-
-
-async def get_weather(location: str) -> Optional[WeatherInfo]:
-    """Fetch current weather for an encoded Open-Meteo location token."""
-    location_data = _decode_location_token(location)
-    if not location_data:
-        print("Invalid weather location token")
-        return None
-
+async def get_weather_by_coordinates(latitude: float, longitude: float) -> Optional[WeatherInfo]:
+    """Fetch current weather for a pair of coordinates."""
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 FORECAST_URL,
                 params={
-                    "latitude": location_data["lat"],
-                    "longitude": location_data["lon"],
+                    "latitude": latitude,
+                    "longitude": longitude,
                     "current": ",".join(
                         [
                             "temperature_2m",
@@ -214,25 +126,9 @@ async def get_weather(location: str) -> Optional[WeatherInfo]:
         humidity=float(current.get("relative_humidity_2m", 0.0)),
         windDir=_wind_direction(wind_degrees),
         windScale=_wind_scale(wind_speed),
-        location=_location_label(location_data),
+        location=_location_label(latitude, longitude),
         obsTime=str(current.get("time", "")),
     )
-
-
-async def get_weather_for_query(location_query: str) -> Optional[WeatherInfo]:
-    location_query = location_query.strip()
-    if not location_query:
-        return None
-
-    token_payload = _decode_location_token(location_query)
-    if token_payload:
-        return await get_weather(location_query)
-
-    cities = await search_city(location_query, limit=1)
-    if not cities:
-        return None
-
-    return await get_weather(cities[0].id)
 
 
 def get_season_from_weather(weather: WeatherInfo) -> list[str]:
@@ -256,40 +152,3 @@ def get_season_from_weather(weather: WeatherInfo) -> list[str]:
         seasons.extend(["summer", "spring"])
 
     return list(dict.fromkeys(seasons))
-
-
-def get_clothing_suggestion(weather: WeatherInfo) -> str:
-    """
-    根据天气生成穿搭建议
-
-    Args:
-        weather: 天气信息
-
-    Returns:
-        穿搭建议文本
-    """
-    temp = weather.temperature
-    feels_like = weather.feelsLike
-    condition = weather.condition.lower()
-
-    suggestions = []
-
-    if feels_like <= 5:
-        suggestions.append("天气很冷，建议穿厚外套、毛衣、长裤，注意保暖。")
-    elif feels_like <= 15:
-        suggestions.append("天气较凉，建议穿外套或针织衫搭配长裤。")
-    elif feels_like <= 25:
-        suggestions.append("天气舒适，适合衬衫、T恤搭配长裤或裙装。")
-    else:
-        suggestions.append("天气炎热，建议穿轻薄透气的夏装。")
-
-    if "rain" in condition or "drizzle" in condition or "shower" in condition:
-        suggestions.append("有降水，建议带伞并选择防水鞋。")
-    if "snow" in condition:
-        suggestions.append("有降雪，建议穿防滑保暖的鞋靴。")
-    if "thunderstorm" in condition:
-        suggestions.append("有雷暴，建议减少户外停留并做好防雨。")
-    if "fog" in condition:
-        suggestions.append("有雾，外出注意能见度变化。")
-
-    return " ".join(suggestions)

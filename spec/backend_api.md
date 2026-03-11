@@ -193,27 +193,31 @@ ClothingItem 响应示例:
 ## 穿搭 `/api/outfits`
 
 POST `/api/outfits/recommend/`  
-说明: 基于天气与衣橱生成推荐  
+说明: 基于浏览器 GPS 坐标查询天气并结合衣橱生成推荐  
 请求体:
 ```json
-{ "location": "101020100" }
+{ "latitude": 31.2304, "longitude": 121.4737 }
 ```
 响应 200:
 ```json
 {
-  "weather": { "temperature": 18.0, "feelsLike": 17.0, "condition": "多云", "icon": "101", "humidity": 60, "windDir": "东北风", "windScale": "2", "location": "上海", "obsTime": "2026-03-04T12:00:00Z" },
-  "seasons": ["春季"],
+  "weather": { "temperature": 18.0, "feelsLike": 17.0, "condition": "Partly cloudy", "icon": "102", "humidity": 60, "windDir": "NE", "windScale": "2", "location": "31.2304, 121.4737", "obsTime": "2026-03-04T12:00:00Z" },
+  "seasons": ["spring", "autumn"],
   "outfit": { /* Outfit */ },
   "history": { /* OutfitHistory */ }
 }
 ```
 失败 400:
 ```json
-{ "detail": "location required" }
+{ "detail": "latitude and longitude required" }
 ```
 失败 503:
 ```json
 { "detail": "weather unavailable" }
+```
+或
+```json
+{ "detail": "recommendation unavailable" }
 ```
 
 GET `/api/outfits/history/`  
@@ -280,81 +284,8 @@ WeatherSnapshot 响应示例:
 }
 ```
 
-## 集成配置与天气 `/api/integrations`
+说明:
 
-GET `/api/integrations/config/`  
-说明: 获取脱敏配置  
-响应 200:
-```json
-{
-  "api_base": "",
-  "api_key_masked": "****",
-  "has_api_key": false,
-  "model": "",
-  "removebg_api_key_masked": "****",
-  "has_removebg_key": false,
-  "bg_removal_method": "removebg"
-}
-```
-
-POST `/api/integrations/config/`  
-说明: 更新配置（返回未脱敏数据）  
-请求体:
-```json
-{
-  "api_base": "",
-  "api_key": "",
-  "model": "",
-  "removebg_api_key": "",
-  "bg_removal_method": "removebg"
-}
-```
-响应 200:
-```json
-{
-  "message": "updated",
-  "api_base": "",
-  "api_key": "",
-  "model": "",
-  "removebg_api_key": "",
-  "bg_removal_method": "removebg"
-}
-```
-
-GET `/api/integrations/weather/search/?query=beijing`  
-说明: 城市搜索  
-响应 200:
-```json
-[
-  { "name": "Beijing", "id": "eyJuYW1lIjoiQmVpamluZyIsImFkbTEiOiJCZWlqaW5nIiwiYWRtMiI6IiIsImNvdW50cnkiOiJDaGluYSIsImxhdCI6MzkuOTA3NSwibG9uIjoxMTYuMzk3MjN9", "adm1": "Beijing", "adm2": "", "country": "China", "lat": "39.9075", "lon": "116.39723" }
-]
-```
-失败 400:
-```json
-{ "detail": "query required" }
-```
-
-GET `/api/integrations/weather/now/?location=<opaque-location-token>`  
-说明: 当前天气  
-响应 200:
-```json
-{
-  "temperature": 18.0,
-  "feelsLike": 17.0,
-  "condition": "Partly cloudy",
-  "icon": "101",
-  "humidity": 60,
-  "windDir": "NE",
-  "windScale": "2",
-  "location": "Shanghai, Shanghai, China",
-  "obsTime": "2026-03-04T12:00"
-}
-```
-失败 400:
-```json
-{ "detail": "location required" }
-```
-失败 503:
-```json
-{ "detail": "weather unavailable" }
-```
+- OpenRouter 配置不通过前端或后端配置 API 暴露
+- OpenRouter 使用环境变量 `OPENROUTER_API_BASE`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
+- LLM 图片编辑模型使用环境变量 `OPENROUTER_IMAGE_MODEL`，默认 `openai/gpt-image-1`

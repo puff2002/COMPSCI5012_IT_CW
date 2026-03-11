@@ -24,7 +24,6 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
     path('api/wardrobe/', include('wardrobe.urls')),
     path('api/outfits/', include('outfits.urls')),
-    path('api/integrations/', include('integrations.urls')),
 ]
 
 if settings.DEBUG:

@@ -12,6 +12,7 @@ from domain.prompts import CLOTHES_SEMANTIC_PROMPT
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_DEFAULT_MODEL = "openai/gpt-4o-mini"
+OPENROUTER_DEFAULT_IMAGE_MODEL = "openai/gpt-image-1"
 
 
 def _resolve_api_base() -> str:
@@ -28,6 +29,10 @@ def _resolve_api_key() -> str:
 
 def _resolve_model_name() -> str:
     return os.getenv("OPENROUTER_MODEL", "").strip() or OPENROUTER_DEFAULT_MODEL
+
+
+def _resolve_image_model_name() -> str:
+    return os.getenv("OPENROUTER_IMAGE_MODEL", "").strip() or OPENROUTER_DEFAULT_IMAGE_MODEL
 
 
 def _extract_json(text: str) -> dict:
@@ -92,6 +97,53 @@ async def chat_completion(messages: Sequence[dict[str, object]], temperature: fl
     if not isinstance(content, str) or not content.strip():
         raise ValueError("OpenRouter response did not include message content")
     return content.strip()
+
+
+async def edit_image_remove_background(image_bytes: bytes, mime_type: str = "image/png") -> bytes:
+    form_data = {
+        "model": _resolve_image_model_name(),
+        "prompt": (
+            "Remove the background completely from this clothing image. "
+            "Keep only the clothing item. Preserve the garment shape, texture, and colors. "
+            "Return a transparent PNG with no added props, mannequins, people, or shadows."
+        ),
+        "size": "1024x1024",
+    }
+    files = {
+        "image": ("item.png", image_bytes, mime_type),
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            f"{_resolve_api_base()}/images/edits",
+            headers={
+                "Authorization": f"Bearer {_resolve_api_key()}",
+                "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "http://localhost"),
+                "X-Title": os.getenv("OPENROUTER_APP_TITLE", "Smart Closet"),
+            },
+            data=form_data,
+            files=files,
+        )
+
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        detail = exc.response.text.strip()
+        raise ValueError(f"Image edit request failed: {exc.response.status_code} {detail}") from exc
+
+    data = response.json()
+    items = data.get("data")
+    if not isinstance(items, list) or not items:
+        raise ValueError("Image edit response did not include any outputs")
+
+    encoded_image = items[0].get("b64_json")
+    if not isinstance(encoded_image, str) or not encoded_image.strip():
+        raise ValueError("Image edit response did not include b64_json output")
+
+    try:
+        return base64.b64decode(encoded_image)
+    except Exception as exc:
+        raise ValueError("Failed to decode edited image output") from exc
 
 
 async def analyze_clothes(image_bytes: bytes, mime_type: str = "image/png") -> ClothesSemantics:

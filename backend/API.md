@@ -193,15 +193,15 @@ ClothingItem 响应示例:
 ## 穿搭 `/api/outfits`
 
 POST `/api/outfits/recommend/`  
-说明: 基于天气与衣橱生成推荐，推荐文本由 OpenRouter LLM 生成，失败时回退到基础文本  
+说明: 基于浏览器 GPS 坐标查询天气并结合衣橱生成推荐，推荐文本由 OpenRouter LLM 生成  
 请求体:
 ```json
-{ "location": "melbourne" }
+{ "latitude": -37.8136, "longitude": 144.9631 }
 ```
 响应 200:
 ```json
 {
-  "weather": { "temperature": 18.0, "feelsLike": 17.0, "condition": "Partly cloudy", "icon": "102", "humidity": 60, "windDir": "SE", "windScale": "3", "location": "Melbourne, Victoria, Australia", "obsTime": "2026-03-04T12:00:00" },
+  "weather": { "temperature": 18.0, "feelsLike": 17.0, "condition": "Partly cloudy", "icon": "102", "humidity": 60, "windDir": "SE", "windScale": "3", "location": "-37.8136, 144.9631", "obsTime": "2026-03-04T12:00:00" },
   "seasons": ["spring", "autumn"],
   "outfit": { /* Outfit */ },
   "history": { /* OutfitHistory */ }
@@ -209,11 +209,15 @@ POST `/api/outfits/recommend/`
 ```
 失败 400:
 ```json
-{ "detail": "location required" }
+{ "detail": "latitude and longitude required" }
 ```
 失败 503:
 ```json
 { "detail": "weather unavailable" }
+```
+或
+```json
+{ "detail": "recommendation unavailable" }
 ```
 
 GET `/api/outfits/history/`  
@@ -280,42 +284,8 @@ WeatherSnapshot 响应示例:
 }
 ```
 
-## 集成配置与天气 `/api/integrations`
-
-GET `/api/integrations/config/`  
-说明: 获取脱敏的 RemoveBG 配置  
-响应 200:
-```json
-{
-  "removebg_api_key_masked": "****",
-  "has_removebg_key": false,
-  "bg_removal_method": "removebg"
-}
-```
-
-POST `/api/integrations/config/`  
-说明: 更新 RemoveBG 配置（返回未脱敏数据）  
-请求体:
-```json
-{
-  "removebg_api_key": "",
-  "bg_removal_method": "removebg"
-}
-```
-响应 200:
-```json
-{
-  "message": "updated",
-  "removebg_api_key": "",
-  "bg_removal_method": "removebg"
-}
-```
-
 说明:
 
-- OpenRouter 配置不再通过前端或后端配置 API 暴露
+- OpenRouter 配置不通过前端或后端配置 API 暴露
 - OpenRouter 使用环境变量 `OPENROUTER_API_BASE`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
-失败 503:
-```json
-{ "detail": "weather unavailable" }
-```
+- LLM 图片编辑模型使用环境变量 `OPENROUTER_IMAGE_MODEL`，默认 `openai/gpt-image-1`

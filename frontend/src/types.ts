@@ -72,14 +72,3 @@ export interface RecommendationResponse {
   outfit: Outfit;
   history: OutfitHistory;
 }
-
-export interface IntegrationConfigMasked {
-  removebg_api_key_masked: string;
-  has_removebg_key: boolean;
-  bg_removal_method: string;
-}
-
-export interface IntegrationConfigUpdate {
-  removebg_api_key: string;
-  bg_removal_method: string;
-}

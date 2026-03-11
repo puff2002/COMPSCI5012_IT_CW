@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from services.recommendation import get_llm_recommendation
-from services.weather import get_season_from_weather, get_weather_for_query
+from services.weather import get_season_from_weather, get_weather_by_coordinates
 from wardrobe.models import ClothingItem
 
 from .models import Outfit, OutfitHistory, WeatherSnapshot
@@ -49,11 +49,16 @@ class RecommendView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        location = str(request.data.get("location", "")).strip()
-        if not location:
-            return Response({"detail": "location required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            latitude = float(request.data.get("latitude"))
+            longitude = float(request.data.get("longitude"))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "latitude and longitude required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        weather = async_to_sync(get_weather_for_query)(location)
+        weather = async_to_sync(get_weather_by_coordinates)(latitude, longitude)
         if not weather:
             return Response({"detail": "weather unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -74,12 +79,15 @@ class RecommendView(APIView):
         suggested_top = random.choice(tops) if tops else None
         suggested_bottom = random.choice(bottoms) if bottoms else None
 
-        recommendation_text = async_to_sync(get_llm_recommendation)(
-            weather,
-            seasons,
-            [_to_prompt_item(item) for item in tops],
-            [_to_prompt_item(item) for item in bottoms],
-        )
+        try:
+            recommendation_text = async_to_sync(get_llm_recommendation)(
+                weather,
+                seasons,
+                [_to_prompt_item(item) for item in tops],
+                [_to_prompt_item(item) for item in bottoms],
+            )
+        except Exception:
+            return Response({"detail": "recommendation unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         weather_snapshot = WeatherSnapshot.objects.create(
             location=weather.location,

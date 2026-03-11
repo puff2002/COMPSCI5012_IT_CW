@@ -1,8 +1,7 @@
-import { getIntegrationConfig, getMe, logout, updateIntegrationConfig } from "../api.js";
+import { getMe, logout } from "../api.js";
 import { clearTokens, getRefreshToken, requireAuth } from "../auth.js";
 import { ROUTES } from "../config.js";
-import { requireElement, text, toggleDisabled } from "../ui.js";
-import type { IntegrationConfigUpdate } from "../types.js";
+import { requireElement, text } from "../ui.js";
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "settings.html";
@@ -18,36 +17,12 @@ async function loadSettings(): Promise<void> {
   text("#settingsStatus", "Loading settings...");
 
   try {
-    const [user, config] = await Promise.all([getMe(), getIntegrationConfig()]);
+    const user = await getMe();
     text("#profileText", `${user.username} (${user.email})`);
-    requireElement<HTMLInputElement>("#bgMethod").value = config.bg_removal_method;
-    text("#maskedKeys", `RemoveBG key: ${config.removebg_api_key_masked}`);
     text("#settingsStatus", "Settings loaded.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load settings.";
     text("#settingsStatus", message);
-  }
-}
-
-async function saveConfig(event: SubmitEvent): Promise<void> {
-  event.preventDefault();
-  toggleDisabled("#configSaveBtn", true);
-  text("#configError", "");
-
-  const payload: IntegrationConfigUpdate = {
-    removebg_api_key: requireElement<HTMLInputElement>("#removeBgKey").value.trim(),
-    bg_removal_method: requireElement<HTMLInputElement>("#bgMethod").value.trim()
-  };
-
-  try {
-    await updateIntegrationConfig(payload);
-    text("#settingsStatus", "Config saved.");
-    requireElement<HTMLInputElement>("#removeBgKey").value = "";
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to save config.";
-    text("#configError", message);
-  } finally {
-    toggleDisabled("#configSaveBtn", false);
   }
 }
 
@@ -67,9 +42,6 @@ async function onLogout(): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
-  requireElement<HTMLFormElement>("#configForm").addEventListener("submit", (event) => {
-    void saveConfig(event as SubmitEvent);
-  });
   requireElement<HTMLButtonElement>("#logoutBtn").addEventListener("click", () => {
     void onLogout();
   });

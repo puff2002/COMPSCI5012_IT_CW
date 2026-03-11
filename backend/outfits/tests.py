@@ -1,4 +1,3 @@
-from asgiref.sync import async_to_sync
 from unittest.mock import AsyncMock, patch
 
 from django.contrib.auth import get_user_model
@@ -6,7 +5,6 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from outfits.models import Outfit, OutfitHistory
-from services.recommendation import get_llm_recommendation
 from services.weather import WeatherInfo
 from wardrobe.models import ClothingItem
 
@@ -71,7 +69,7 @@ class OutfitRecommendationTests(APITestCase):
             obsTime="2026-03-11T10:00",
         )
 
-    @patch("outfits.views.get_weather_for_query", new_callable=AsyncMock)
+    @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
     def test_recommend_returns_outfit_and_history(self, mock_recommendation: AsyncMock, mock_get_weather: AsyncMock):
         mock_get_weather.return_value = self._weather()
@@ -79,7 +77,7 @@ class OutfitRecommendationTests(APITestCase):
 
         response = self.client.post(
             "/api/outfits/recommend/",
-            {"location": "melbourne"},
+            {"latitude": -37.8136, "longitude": 144.9631},
             format="json",
             **self.auth_headers,
         )
@@ -96,7 +94,7 @@ class OutfitRecommendationTests(APITestCase):
         self.assertEqual(args[2][0]["category"], "top")
         self.assertEqual(args[3][0]["item"], "Chinos")
 
-    @patch("outfits.views.get_weather_for_query", new_callable=AsyncMock)
+    @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
     def test_recommend_uses_fallback_category_pool_when_no_seasonal_match(
         self,
@@ -118,7 +116,7 @@ class OutfitRecommendationTests(APITestCase):
 
         response = self.client.post(
             "/api/outfits/recommend/",
-            {"location": "melbourne"},
+            {"latitude": -37.8136, "longitude": 144.9631},
             format="json",
             **self.auth_headers,
         )
@@ -130,7 +128,7 @@ class OutfitRecommendationTests(APITestCase):
         self.assertEqual({item["item"] for item in top_items}, {"Heavy Knit"})
         self.assertEqual({item["item"] for item in bottom_items}, {"Chinos"})
 
-    @patch("outfits.views.get_weather_for_query", new_callable=AsyncMock)
+    @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
     def test_recommend_returns_503_when_weather_unavailable(
         self,
@@ -141,7 +139,7 @@ class OutfitRecommendationTests(APITestCase):
 
         response = self.client.post(
             "/api/outfits/recommend/",
-            {"location": "melbourne"},
+            {"latitude": -37.8136, "longitude": 144.9631},
             format="json",
             **self.auth_headers,
         )
@@ -149,24 +147,24 @@ class OutfitRecommendationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(Outfit.objects.count(), 0)
         self.assertEqual(OutfitHistory.objects.count(), 0)
+    @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
+    @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
+    def test_recommend_returns_503_when_recommendation_unavailable(
+        self,
+        mock_recommendation: AsyncMock,
+        mock_get_weather: AsyncMock,
+    ):
+        mock_get_weather.return_value = self._weather()
+        mock_recommendation.side_effect = ValueError("OpenRouter down")
 
-
-class RecommendationServiceTests(APITestCase):
-    @patch("services.recommendation.chat_completion", new_callable=AsyncMock)
-    def test_get_llm_recommendation_falls_back_when_openrouter_fails(self, mock_chat_completion: AsyncMock):
-        mock_chat_completion.side_effect = ValueError("OpenRouter down")
-        weather = WeatherInfo(
-            temperature=29.0,
-            feelsLike=31.0,
-            condition="Clear sky",
-            icon="100",
-            humidity=40.0,
-            windDir="N",
-            windScale="2",
-            location="Melbourne, Victoria, Australia",
-            obsTime="2026-03-11T13:00",
+        response = self.client.post(
+            "/api/outfits/recommend/",
+            {"latitude": -37.8136, "longitude": 144.9631},
+            format="json",
+            **self.auth_headers,
         )
 
-        result = async_to_sync(get_llm_recommendation)(weather, ["summer"], [], [])
-
-        self.assertIn("breathable summer clothing", result)
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(response.data["detail"], "recommendation unavailable")
+        self.assertEqual(Outfit.objects.count(), 0)
+        self.assertEqual(OutfitHistory.objects.count(), 0)

@@ -23,8 +23,6 @@
 - [x] `POST /api/outfits/history/`
 - [x] `PATCH /api/outfits/history/{id}/`
 - [x] `DELETE /api/outfits/history/{id}/`
-- [x] `GET /api/integrations/config/`
-- [x] `POST /api/integrations/config/`
 
 ## Frontend flows
 
@@ -34,5 +32,5 @@
 - [x] Upload and fallback to manual create
 - [x] OOTD generation and auto-history behavior
 - [x] History edit/delete
-- [x] Settings fetch/update/logout
+- [x] Settings fetch/logout
 - [x] Route guard and unauthorized redirect

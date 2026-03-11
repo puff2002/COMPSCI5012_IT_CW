@@ -1,9 +1,10 @@
 import { createHistory, deleteHistory, getHistory, updateHistory } from "../api.js";
 import { requireAuth } from "../auth.js";
 import { formatDate, html, initMobileSidebar, requireElement, text, toggleDisabled } from "../ui.js";
-import type { OutfitHistory } from "../types.js";
+import type { ClothingItem, OutfitHistory } from "../types.js";
 
 let historyItems: OutfitHistory[] = [];
+const PLACEHOLDER_IMAGE = "./assets/img/placeholder-item.svg";
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "history.html";
@@ -15,6 +16,45 @@ function setActiveNav(): void {
   });
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderStars(rating: number | null): string {
+  if (!rating) {
+    return "<span class=\"history-rating-empty\">Not rated</span>";
+  }
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const filled = index < rating;
+    return `<span class="history-star${filled ? " is-filled" : ""}" aria-hidden="true">${filled ? "★" : "☆"}</span>`;
+  }).join("");
+}
+
+function renderPiece(label: string, item: ClothingItem | null): string {
+  const name = item?.item ?? "Not included";
+  const description = item?.description?.trim() || "No saved notes for this item.";
+  const image = item?.image_url || PLACEHOLDER_IMAGE;
+
+  return `
+    <article class="history-piece">
+      <div class="history-piece-media">
+        <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" width="160" height="160">
+      </div>
+      <div class="history-piece-body">
+        <p class="history-piece-label">${escapeHtml(label)}</p>
+        <h4>${escapeHtml(name)}</h4>
+        <p>${escapeHtml(description)}</p>
+      </div>
+    </article>
+  `;
+}
+
 function renderHistory(): void {
   if (historyItems.length === 0) {
     html("#historyList", "<p class=\"empty-panel\">No history entries yet.</p>");
@@ -22,21 +62,46 @@ function renderHistory(): void {
   }
 
   const blocks = historyItems.map((entry) => {
-    const top = entry.outfit_detail.top_detail?.item ?? "None";
-    const bottom = entry.outfit_detail.bottom_detail?.item ?? "None";
-    const shoes = entry.outfit_detail.shoes_detail?.item ?? "None";
+    const feedback = entry.feedback.trim() || "No feedback recorded.";
+    const recommendation = entry.outfit_detail.recommendation_text.trim() || "No recommendation summary saved.";
 
     return `
       <article class="history-card">
-        <header>
-          <h3>History #${entry.id}</h3>
-          <p>${formatDate(entry.created_at)}</p>
+        <header class="history-card-header">
+          <div>
+            <p class="eyebrow">Entry #${entry.id}</p>
+            <h3>Outfit record</h3>
+          </div>
+          <div class="history-card-date">
+            <span>Saved</span>
+            <strong>${escapeHtml(formatDate(entry.created_at))}</strong>
+          </div>
         </header>
-        <p>Top: ${top}</p>
-        <p>Bottom: ${bottom}</p>
-        <p>Shoes: ${shoes}</p>
-        <p>Rating: ${entry.rating ?? "Not rated"}</p>
-        <p>Feedback: ${entry.feedback || "No feedback"}</p>
+        <section class="history-piece-grid" aria-label="Outfit items for history entry ${entry.id}">
+          ${renderPiece("Top", entry.outfit_detail.top_detail)}
+          ${renderPiece("Bottom", entry.outfit_detail.bottom_detail)}
+          ${renderPiece("Shoes", entry.outfit_detail.shoes_detail)}
+        </section>
+        <dl class="history-meta">
+          <div>
+            <dt>Rating</dt>
+            <dd class="history-rating" aria-label="${entry.rating ? `${entry.rating} out of 5 stars` : "Not rated"}">${renderStars(entry.rating)}</dd>
+          </div>
+          <div>
+            <dt>Outfit ID</dt>
+            <dd>#${entry.outfit}</dd>
+          </div>
+        </dl>
+        <div class="history-note-grid">
+          <section class="history-note-card">
+            <p class="history-note-label">Recommendation</p>
+            <p>${escapeHtml(recommendation)}</p>
+          </section>
+          <section class="history-note-card">
+            <p class="history-note-label">Feedback</p>
+            <p>${escapeHtml(feedback)}</p>
+          </section>
+        </div>
         <div class="item-actions">
           <button class="btn btn-secondary" data-action="load-edit" data-id="${entry.id}">Edit</button>
           <button class="btn btn-danger" data-action="delete" data-id="${entry.id}">Delete</button>
@@ -52,6 +117,7 @@ async function loadHistory(): Promise<void> {
   text("#historyStatus", "Loading history...");
   try {
     historyItems = await getHistory();
+    historyItems.sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
     renderHistory();
     text("#historyStatus", `${historyItems.length} entry(ies) loaded.`);
   } catch (error) {

@@ -34,8 +34,31 @@
         <h2>Outfit History</h2>
       </header>
 
+      <section class="panel history-hero">
+        <div>
+          <p class="eyebrow">Wear log</p>
+          <h3>Track how each outfit performed after you wore it.</h3>
+          <p class="muted">Review saved looks, scan the item images at a glance, and record a rating with feedback that will still make sense later.</p>
+        </div>
+        <dl class="history-summary" aria-label="History page summary">
+          <div>
+            <dt>Visual cards</dt>
+            <dd>Every history entry shows the outfit pieces with photos when available.</dd>
+          </div>
+          <div>
+            <dt>Quick review</dt>
+            <dd>Ratings, notes, and creation timestamps are grouped for faster scanning.</dd>
+          </div>
+        </dl>
+      </section>
+
       <section class="panel">
-        <h3 id="historyMode">Create / Update History Entry</h3>
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Editor</p>
+            <h3 id="historyMode">Create / Update History Entry</h3>
+          </div>
+        </div>
         <form id="historyForm">
           <input id="historyId" type="hidden">
           <div class="form-row">
@@ -61,9 +84,14 @@
       </section>
 
       <section class="panel">
-        <h3>History List</h3>
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Saved entries</p>
+            <h3>History List</h3>
+          </div>
+        </div>
         <p id="historyStatus" class="status-line" aria-live="polite"></p>
-        <section id="historyList" class="items-grid" aria-label="History entries"></section>
+        <section id="historyList" class="history-list" aria-label="History entries"></section>
       </section>
     </main>
   </div>

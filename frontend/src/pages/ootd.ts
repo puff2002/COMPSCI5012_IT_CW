@@ -1,10 +1,6 @@
-import { recommend, searchCity, weatherNow } from "../api.js";
+import { recommend } from "../api.js";
 import { requireAuth } from "../auth.js";
 import { formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
-import type { CitySearchResult } from "../types.js";
-
-let cities: CitySearchResult[] = [];
-let selectedLocationId = "";
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "ootd.html";
@@ -16,58 +12,11 @@ function setActiveNav(): void {
   });
 }
 
-function renderCities(): void {
-  const options = cities.map((city) => `<option value="${city.id}">${city.name}, ${city.adm1}, ${city.country}</option>`).join("");
-  html("#cityList", options);
-}
-
-async function search(event: SubmitEvent): Promise<void> {
-  event.preventDefault();
-  const query = requireElement<HTMLInputElement>("#cityQuery").value.trim();
-  if (!query) {
-    text("#ootdStatus", "Enter a city to search.");
-    return;
-  }
-
-  toggleDisabled("#citySearchBtn", true);
-  text("#ootdStatus", "Searching cities...");
-
-  try {
-    cities = await searchCity(query);
-    renderCities();
-    text("#ootdStatus", `${cities.length} city option(s) found.`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "City search failed.";
-    text("#ootdStatus", message);
-  } finally {
-    toggleDisabled("#citySearchBtn", false);
-  }
-}
-
-async function loadWeather(): Promise<void> {
-  selectedLocationId = requireElement<HTMLSelectElement>("#cityList").value;
-  if (!selectedLocationId) {
-    text("#ootdStatus", "Select a city first.");
-    return;
-  }
-  toggleDisabled("#weatherBtn", true);
-  text("#ootdStatus", "Loading weather...");
-  try {
-    const weather = await weatherNow(selectedLocationId);
-    text("#weatherText", `${weather.location}: ${weather.temperature}°C (feels ${weather.feelsLike}°C), ${weather.condition}`);
-    text("#ootdStatus", "Weather loaded.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Weather unavailable.";
-    text("#ootdStatus", `${message} You can still use manual selection.`);
-  } finally {
-    toggleDisabled("#weatherBtn", false);
-  }
-}
-
-async function generate(): Promise<void> {
-  const location = requireElement<HTMLSelectElement>("#cityList").value;
+async function generate(event?: SubmitEvent): Promise<void> {
+  event?.preventDefault();
+  const location = requireElement<HTMLInputElement>("#cityQuery").value.trim();
   if (!location) {
-    text("#ootdStatus", "Select a city before generating recommendation.");
+    text("#ootdStatus", "Enter a city before generating a recommendation.");
     return;
   }
 
@@ -102,10 +51,7 @@ function init(): void {
   requireAuth();
   setActiveNav();
   requireElement<HTMLFormElement>("#citySearchForm").addEventListener("submit", (event) => {
-    void search(event as SubmitEvent);
-  });
-  requireElement<HTMLButtonElement>("#weatherBtn").addEventListener("click", () => {
-    void loadWeather();
+    void generate(event as SubmitEvent);
   });
   requireElement<HTMLButtonElement>("#recommendBtn").addEventListener("click", () => {
     void generate();

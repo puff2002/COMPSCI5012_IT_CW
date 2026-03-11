@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -5,7 +7,8 @@ from django.test import SimpleTestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from services.weather import CityInfo, WeatherInfo, _decode_location_token, _encode_location_token
+from services.weather import _decode_location_token, _encode_location_token
+from storage.config_store import get_masked_config
 
 User = get_user_model()
 
@@ -33,8 +36,22 @@ class WeatherServiceTests(SimpleTestCase):
         self.assertEqual(decoded["lon"], 144.96332)
 
 
+class ConfigStoreTests(SimpleTestCase):
+    def test_masked_config_uses_removebg_defaults_when_no_saved_file(self):
+        with TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir) / "llm_config.json"
+            with patch("storage.config_store.CONFIG_FILE", temp_path):
+                config = get_masked_config()
+
+        self.assertEqual(config["bg_removal_method"], "removebg")
+        self.assertFalse(config["has_removebg_key"])
+
+
 class IntegrationApiTests(APITestCase):
     def setUp(self):
+        self.temp_dir = TemporaryDirectory()
+        self.config_patcher = patch("storage.config_store.CONFIG_FILE", Path(self.temp_dir.name) / "llm_config.json")
+        self.config_patcher.start()
         self.user = User.objects.create_user(
             username="weather-user",
             email="weather@example.com",
@@ -48,13 +65,14 @@ class IntegrationApiTests(APITestCase):
         self.access = login_resp.data["access"]
         self.auth_headers = {"HTTP_AUTHORIZATION": f"Bearer {self.access}"}
 
-    def test_config_response_excludes_qweather_fields(self):
+    def tearDown(self):
+        self.config_patcher.stop()
+        self.temp_dir.cleanup()
+
+    def test_config_response_only_exposes_removebg_fields(self):
         save_resp = self.client.post(
             "/api/integrations/config/",
             {
-                "api_base": "https://example.com",
-                "api_key": "secret-llm-key",
-                "model": "gemini-2.0-flash",
                 "removebg_api_key": "removebg-secret",
                 "bg_removal_method": "removebg",
             },
@@ -62,54 +80,14 @@ class IntegrationApiTests(APITestCase):
             **self.auth_headers,
         )
         self.assertEqual(save_resp.status_code, status.HTTP_200_OK)
-        self.assertNotIn("qweather_api_key", save_resp.data)
-        self.assertNotIn("qweather_api_host", save_resp.data)
+        self.assertNotIn("api_base", save_resp.data)
+        self.assertNotIn("api_key", save_resp.data)
+        self.assertNotIn("model", save_resp.data)
 
         get_resp = self.client.get("/api/integrations/config/", **self.auth_headers)
         self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
-        self.assertNotIn("qweather_api_key_masked", get_resp.data)
-        self.assertNotIn("has_qweather_key", get_resp.data)
-        self.assertNotIn("qweather_api_host", get_resp.data)
-        self.assertEqual(get_resp.data["api_base"], "https://example.com")
-        self.assertTrue(get_resp.data["has_api_key"])
+        self.assertNotIn("api_base", get_resp.data)
+        self.assertNotIn("api_key_masked", get_resp.data)
+        self.assertNotIn("has_api_key", get_resp.data)
+        self.assertNotIn("model", get_resp.data)
         self.assertTrue(get_resp.data["has_removebg_key"])
-
-    @patch("integrations.views.search_city")
-    def test_weather_search_returns_backend_shape(self, mock_search_city):
-        mock_search_city.return_value = [
-            CityInfo(
-                name="Melbourne",
-                id="encoded-token",
-                adm1="Victoria",
-                adm2="Melbourne",
-                country="Australia",
-                lat="-37.814",
-                lon="144.96332",
-            )
-        ]
-
-        resp = self.client.get("/api/integrations/weather/search/?query=melbourne", **self.auth_headers)
-
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data[0]["id"], "encoded-token")
-        self.assertEqual(resp.data[0]["name"], "Melbourne")
-
-    @patch("integrations.views.get_weather")
-    def test_weather_now_returns_backend_shape(self, mock_get_weather):
-        mock_get_weather.return_value = WeatherInfo(
-            temperature=21.5,
-            feelsLike=20.8,
-            condition="Partly cloudy",
-            icon="102",
-            humidity=61.0,
-            windDir="SE",
-            windScale="3",
-            location="Melbourne, Victoria, Australia",
-            obsTime="2026-03-11T10:00",
-        )
-
-        resp = self.client.get("/api/integrations/weather/now/?location=encoded-token", **self.auth_headers)
-
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data["condition"], "Partly cloudy")
-        self.assertEqual(resp.data["windDir"], "SE")

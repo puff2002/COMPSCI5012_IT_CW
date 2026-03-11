@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from services.recommendation import get_llm_recommendation
-from services.weather import get_season_from_weather, get_weather
+from services.weather import get_season_from_weather, get_weather_for_query
 from wardrobe.models import ClothingItem
 
 from .models import Outfit, OutfitHistory, WeatherSnapshot
@@ -19,6 +19,19 @@ def _weather_to_raw(weather):
     if hasattr(weather, "dict"):
         return weather.dict()
     return {}
+
+
+def _to_prompt_item(item: ClothingItem) -> dict[str, object]:
+    return {
+        "id": item.id,
+        "item": item.item,
+        "category": item.category,
+        "style_semantics": item.style_semantics,
+        "season_semantics": item.season_semantics,
+        "usage_semantics": item.usage_semantics,
+        "color_semantics": item.color_semantics,
+        "description": item.description,
+    }
 
 
 class OutfitHistoryViewSet(viewsets.ModelViewSet):
@@ -36,11 +49,11 @@ class RecommendView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        location = request.data.get("location")
+        location = str(request.data.get("location", "")).strip()
         if not location:
             return Response({"detail": "location required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        weather = async_to_sync(get_weather)(location)
+        weather = async_to_sync(get_weather_for_query)(location)
         if not weather:
             return Response({"detail": "weather unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -64,8 +77,8 @@ class RecommendView(APIView):
         recommendation_text = async_to_sync(get_llm_recommendation)(
             weather,
             seasons,
-            tops,
-            bottoms,
+            [_to_prompt_item(item) for item in tops],
+            [_to_prompt_item(item) for item in bottoms],
         )
 
         weather_snapshot = WeatherSnapshot.objects.create(

@@ -66,16 +66,6 @@ export interface WeatherNow {
   obsTime: string;
 }
 
-export interface CitySearchResult {
-  name: string;
-  id: string;
-  adm1: string;
-  adm2: string;
-  country: string;
-  lat: string;
-  lon: string;
-}
-
 export interface RecommendationResponse {
   weather: WeatherNow;
   seasons: string[];
@@ -84,19 +74,12 @@ export interface RecommendationResponse {
 }
 
 export interface IntegrationConfigMasked {
-  api_base: string;
-  api_key_masked: string;
-  has_api_key: boolean;
-  model: string;
   removebg_api_key_masked: string;
   has_removebg_key: boolean;
   bg_removal_method: string;
 }
 
 export interface IntegrationConfigUpdate {
-  api_base: string;
-  api_key: string;
-  model: string;
   removebg_api_key: string;
   bg_removal_method: string;
 }

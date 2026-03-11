@@ -27,28 +27,16 @@
         <h2>OOTD Generator</h2>
       </header>
       <section class="panel">
-        <h3>Location and Weather</h3>
+        <h3>Location</h3>
         <form id="citySearchForm" class="form-row">
           <div class="form-field">
-            <label for="cityQuery">City query</label>
+            <label for="cityQuery">City</label>
             <input id="cityQuery" class="input" placeholder="beijing, london, shanghai">
           </div>
           <div class="form-field" style="align-self:end;">
-            <button id="citySearchBtn" class="btn btn-secondary" type="submit">Search city</button>
+            <button id="recommendBtn" class="btn btn-primary" type="submit">Generate OOTD</button>
           </div>
         </form>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="cityList">City results</label>
-            <select id="cityList" class="select"></select>
-          </div>
-          <div class="form-field" style="align-self:end;">
-            <div class="item-actions">
-              <button id="weatherBtn" class="btn btn-secondary" type="button">Load weather</button>
-              <button id="recommendBtn" class="btn btn-primary" type="button">Generate OOTD</button>
-            </div>
-          </div>
-        </div>
         <p id="ootdStatus" class="status-line" aria-live="polite"></p>
         <p id="weatherText" class="status-line"></p>
       </section>

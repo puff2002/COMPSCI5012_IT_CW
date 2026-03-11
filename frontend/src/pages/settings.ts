@@ -20,12 +20,8 @@ async function loadSettings(): Promise<void> {
   try {
     const [user, config] = await Promise.all([getMe(), getIntegrationConfig()]);
     text("#profileText", `${user.username} (${user.email})`);
-
-    requireElement<HTMLInputElement>("#apiBase").value = config.api_base;
-    requireElement<HTMLInputElement>("#model").value = config.model;
     requireElement<HTMLInputElement>("#bgMethod").value = config.bg_removal_method;
-
-    text("#maskedKeys", `LLM key: ${config.api_key_masked} | RemoveBG: ${config.removebg_api_key_masked}`);
+    text("#maskedKeys", `RemoveBG key: ${config.removebg_api_key_masked}`);
     text("#settingsStatus", "Settings loaded.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load settings.";
@@ -39,9 +35,6 @@ async function saveConfig(event: SubmitEvent): Promise<void> {
   text("#configError", "");
 
   const payload: IntegrationConfigUpdate = {
-    api_base: requireElement<HTMLInputElement>("#apiBase").value.trim(),
-    api_key: requireElement<HTMLInputElement>("#apiKey").value.trim(),
-    model: requireElement<HTMLInputElement>("#model").value.trim(),
     removebg_api_key: requireElement<HTMLInputElement>("#removeBgKey").value.trim(),
     bg_removal_method: requireElement<HTMLInputElement>("#bgMethod").value.trim()
   };
@@ -49,7 +42,6 @@ async function saveConfig(event: SubmitEvent): Promise<void> {
   try {
     await updateIntegrationConfig(payload);
     text("#settingsStatus", "Config saved.");
-    requireElement<HTMLInputElement>("#apiKey").value = "";
     requireElement<HTMLInputElement>("#removeBgKey").value = "";
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save config.";

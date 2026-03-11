@@ -45,6 +45,29 @@ Then open:
 - Frontend: `http://127.0.0.1:5500/index.html`
 - Backend API: `http://127.0.0.1:8000/api/`
 
+## 2.1 Configure OpenRouter
+
+The app now uses OpenRouter for:
+
+- clothing image analysis during wardrobe upload
+- outfit recommendation text in the OOTD flow
+
+Configure it by environment variables.
+
+Recommended defaults:
+
+```bash
+OPENROUTER_API_BASE=https://openrouter.ai/api/v1
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+Notes:
+
+- the selected model must support image input if you want wardrobe image analysis to work
+- if the LLM request fails during outfit recommendation, the backend falls back to a basic non-LLM recommendation
+- Gemini is no longer used by this project
+
 ## 3. Nginx Config (Frontend + API Reverse Proxy)
 
 Use this server block (replace paths and domain):

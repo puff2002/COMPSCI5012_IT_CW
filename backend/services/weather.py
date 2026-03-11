@@ -219,6 +219,22 @@ async def get_weather(location: str) -> Optional[WeatherInfo]:
     )
 
 
+async def get_weather_for_query(location_query: str) -> Optional[WeatherInfo]:
+    location_query = location_query.strip()
+    if not location_query:
+        return None
+
+    token_payload = _decode_location_token(location_query)
+    if token_payload:
+        return await get_weather(location_query)
+
+    cities = await search_city(location_query, limit=1)
+    if not cities:
+        return None
+
+    return await get_weather(cities[0].id)
+
+
 def get_season_from_weather(weather: WeatherInfo) -> list[str]:
     """
     根据天气推断适合的季节标签

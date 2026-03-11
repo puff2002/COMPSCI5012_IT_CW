@@ -3,7 +3,6 @@ import { API_BASE, ROUTES } from "./config.js";
 import { parseError } from "./ui.js";
 import type {
   AuthTokens,
-  CitySearchResult,
   ClothingItem,
   IntegrationConfigMasked,
   IntegrationConfigUpdate,
@@ -181,16 +180,6 @@ export async function uploadClosetImage(file: File): Promise<ClothingItem> {
     body: form
   });
   return parseJson<ClothingItem>(response);
-}
-
-export async function searchCity(query: string): Promise<CitySearchResult[]> {
-  const response = await request(`/integrations/weather/search/?query=${encodeURIComponent(query)}`);
-  return parseJson<CitySearchResult[]>(response);
-}
-
-export async function weatherNow(location: string): Promise<WeatherNow> {
-  const response = await request(`/integrations/weather/now/?location=${encodeURIComponent(location)}`);
-  return parseJson<WeatherNow>(response);
 }
 
 export async function recommend(location: string): Promise<RecommendationResponse> {

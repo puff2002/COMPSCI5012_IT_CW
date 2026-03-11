@@ -4,7 +4,7 @@
 
 - Backend running at `http://127.0.0.1:8000`
 - At least 2 test users (user A, user B)
-- API keys configured for weather tests if needed
+- OpenRouter environment variables configured for wardrobe analysis and OOTD generation if needed
 
 ## Endpoint checks
 
@@ -18,8 +18,6 @@
 - [x] `PATCH /api/wardrobe/items/{id}/`
 - [x] `DELETE /api/wardrobe/items/{id}/`
 - [x] `POST /api/wardrobe/items/upload/`
-- [x] `GET /api/integrations/weather/search/`
-- [x] `GET /api/integrations/weather/now/`
 - [x] `POST /api/outfits/recommend/`
 - [x] `GET /api/outfits/history/`
 - [x] `POST /api/outfits/history/`

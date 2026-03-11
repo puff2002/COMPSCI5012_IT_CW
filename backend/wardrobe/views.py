@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.gemini import analyze_clothes
+from services.openrouter import analyze_clothes
 from services.removebg import remove_background_api
 from services.segment import remove_background
 from storage.config_store import load_config
@@ -71,7 +71,7 @@ class ClothingUploadView(APIView):
             processed_bytes = remove_background(raw_bytes)
 
         try:
-            semantics = async_to_sync(analyze_clothes)(processed_bytes)
+            semantics = async_to_sync(analyze_clothes)(processed_bytes, mime_type="image/png")
         except Exception as exc:
             return Response({"detail": f"image analyze failed: {exc}"}, status=status.HTTP_400_BAD_REQUEST)
 

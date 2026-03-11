@@ -1,23 +1,17 @@
-from base64 import b64encode
-
 from asgiref.sync import async_to_sync
-from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.dashscope_service import generate_image
-from services.images import LLM_OUTPUT_SIZE, normalize_image_bytes
 from services.recommendation import (
-    build_outfit_image_prompt,
     build_recommendation_text,
     get_llm_recommendation,
     score_clothing_match,
 )
-from services.weather import WeatherInfo, get_season_from_weather, get_weather_by_coordinates
+from services.weather import get_season_from_weather, get_weather_by_coordinates
 from wardrobe.models import ClothingItem
 
-from .models import Outfit, OutfitHistory, WeatherSnapshot
+from .models import Outfit, OutfitHistory
 from .serializers import OutfitHistorySerializer, OutfitSerializer
 
 
@@ -60,20 +54,6 @@ def _select_best_item(
 
     scored.sort(key=lambda value: (-value[0], value[1], value[2].id))
     return scored[0][2]
-
-
-def _snapshot_to_weather_info(snapshot: WeatherSnapshot) -> WeatherInfo:
-    return WeatherInfo(
-        temperature=snapshot.temperature,
-        feelsLike=snapshot.feels_like,
-        condition=snapshot.condition,
-        icon=snapshot.icon,
-        humidity=snapshot.humidity or 0.0,
-        windDir=snapshot.wind_dir,
-        windScale=snapshot.wind_scale,
-        location=snapshot.location,
-        obsTime=snapshot.obs_time,
-    )
 
 
 class OutfitHistoryViewSet(viewsets.ModelViewSet):
@@ -170,53 +150,6 @@ class RecommendView(APIView):
                 "recommendation": recommendation,
                 "outfit": serializer.data,
                 "history": history_serializer.data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class OutfitSimulationView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, outfit_id: int):
-        outfit = get_object_or_404(Outfit.objects.select_related("top", "bottom", "shoes", "weather"), pk=outfit_id, user=request.user)
-        weather = outfit.weather
-        if not weather:
-            return Response({"detail": "weather unavailable for outfit"}, status=status.HTTP_400_BAD_REQUEST)
-
-        raw_weather = weather.raw or {}
-        weather_info = _snapshot_to_weather_info(weather)
-        seasons = get_season_from_weather(weather_info)
-        top_item = _to_prompt_item(outfit.top) if outfit.top else None
-        bottom_item = _to_prompt_item(outfit.bottom) if outfit.bottom else None
-        shoes_item = _to_prompt_item(outfit.shoes) if outfit.shoes else None
-        prompt = build_outfit_image_prompt(
-            weather_info,
-            seasons,
-            top=top_item,
-            bottom=bottom_item,
-            shoes=shoes_item,
-            recommendation_text=outfit.recommendation_text,
-        )
-
-        try:
-            image_bytes = async_to_sync(generate_image)(prompt)
-            image_bytes, _ = normalize_image_bytes(
-                image_bytes,
-                output_format="PNG",
-                max_dimension=LLM_OUTPUT_SIZE[0],
-                target_size=LLM_OUTPUT_SIZE,
-            )
-        except Exception:
-            return Response({"detail": "outfit image generation unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-        return Response(
-            {
-                "outfit_id": outfit.id,
-                "prompt": prompt,
-                "image_url": f"data:image/png;base64,{b64encode(image_bytes).decode('ascii')}",
-                "weather": raw_weather,
-                "seasons": seasons,
             },
             status=status.HTTP_200_OK,
         )

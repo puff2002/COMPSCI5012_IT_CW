@@ -6,7 +6,6 @@ import type {
   ClothingAnalysis,
   ClothingItem,
   OutfitHistory,
-  OutfitSimulationResponse,
   RecommendationResponse,
   User,
   WeatherNow
@@ -182,10 +181,9 @@ export async function deleteClosetItem(id: number): Promise<void> {
   }
 }
 
-export async function uploadClosetImage(file: File, removeBackground = false): Promise<ClothingAnalysis> {
+export async function uploadClosetImage(file: File): Promise<ClothingAnalysis> {
   const form = new FormData();
   form.append("file", file);
-  form.append("remove_background", String(removeBackground));
   const response = await request("/wardrobe/items/upload/", {
     method: "POST",
     body: form
@@ -200,13 +198,6 @@ export async function recommend(latitude: number, longitude: number): Promise<Re
     body: JSON.stringify({ latitude, longitude })
   });
   return parseJson<RecommendationResponse>(response);
-}
-
-export async function simulateOutfitImage(outfitId: number): Promise<OutfitSimulationResponse> {
-  const response = await request(`/outfits/${outfitId}/simulate-image/`, {
-    method: "POST"
-  });
-  return parseJson<OutfitSimulationResponse>(response);
 }
 
 export async function getHistory(): Promise<OutfitHistory[]> {

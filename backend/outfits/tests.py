@@ -1,10 +1,10 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from outfits.models import Outfit, OutfitHistory, WeatherSnapshot
+from outfits.models import Outfit, OutfitHistory
 from services.weather import WeatherInfo
 from wardrobe.models import ClothingItem
 
@@ -253,78 +253,3 @@ class OutfitRecommendationTests(APITestCase):
         )
         outfit.weather_id = None
         outfit.save(update_fields=["weather"])
-        response = self.client.post(
-            f"/api/outfits/{outfit.id}/simulate-image/",
-            format="json",
-            **self.auth_headers,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["detail"], "weather unavailable for outfit")
-
-    @patch("outfits.views.generate_image", new_callable=AsyncMock)
-    def test_simulate_image_returns_preview_when_generation_succeeds(self, mock_generate_image: AsyncMock):
-        weather = WeatherSnapshot.objects.create(
-            location="Melbourne, Victoria, Australia",
-            temperature=18.0,
-            feels_like=17.0,
-            condition="Partly cloudy",
-            icon="102",
-            humidity=60.0,
-            wind_dir="SE",
-            wind_scale="3",
-            obs_time="2026-03-11T10:00",
-            raw=self._weather().model_dump(),
-        )
-        outfit = Outfit.objects.create(
-            user=self.user,
-            top=self.top,
-            bottom=self.bottom,
-            shoes=self.shoes,
-            recommendation_text="A light smart-casual outfit for mild weather.",
-            weather=weather,
-        )
-        mock_generate_image.return_value = b"fake-image-bytes"
-
-        response = self.client.post(
-            f"/api/outfits/{outfit.id}/simulate-image/",
-            format="json",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["outfit_id"], outfit.id)
-        self.assertIn("Oxford Shirt", response.data["prompt"])
-        self.assertTrue(response.data["image_url"].startswith("data:image/png;base64,"))
-
-    @patch("outfits.views.generate_image", new_callable=AsyncMock)
-    def test_simulate_image_returns_503_when_generation_fails(self, mock_generate_image: AsyncMock):
-        weather = WeatherSnapshot.objects.create(
-            location="Melbourne, Victoria, Australia",
-            temperature=18.0,
-            feels_like=17.0,
-            condition="Partly cloudy",
-            icon="102",
-            humidity=60.0,
-            wind_dir="SE",
-            wind_scale="3",
-            obs_time="2026-03-11T10:00",
-            raw=self._weather().model_dump(),
-        )
-        outfit = Outfit.objects.create(
-            user=self.user,
-            top=self.top,
-            bottom=self.bottom,
-            shoes=self.shoes,
-            recommendation_text="A light smart-casual outfit for mild weather.",
-            weather=weather,
-        )
-        mock_generate_image.side_effect = ValueError("provider down")
-
-        response = self.client.post(
-            f"/api/outfits/{outfit.id}/simulate-image/",
-            format="json",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-        self.assertEqual(response.data["detail"], "outfit image generation unavailable")

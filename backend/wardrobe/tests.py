@@ -47,10 +47,8 @@ class WardrobeUploadTests(APITestCase):
         shutil.rmtree(self._media_root, ignore_errors=True)
         super().tearDown()
 
-    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_returns_analysis_from_dashscope_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
-        mock_remove_background.return_value = PNG_BYTES
+    def test_upload_returns_analysis_from_dashscope_semantics(self, mock_analyze: AsyncMock):
         mock_analyze.return_value = ClothesSemantics(
             detected=True,
             category="top",
@@ -62,88 +60,6 @@ class WardrobeUploadTests(APITestCase):
             description="A casual summer T-shirt",
         )
         upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
-
-        response = self.client.post(
-            "/api/wardrobe/items/upload/",
-            {"file": upload, "remove_background": "true"},
-            format="multipart",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["category"], "top")
-        self.assertEqual(response.data["item"], "T-shirt")
-        self.assertEqual(response.data["style_semantics"], ["casual"])
-        mock_remove_background.assert_awaited_once()
-        analyze_args = mock_analyze.await_args
-        self.assertIsNotNone(analyze_args)
-        self.assertEqual(analyze_args.kwargs["mime_type"], "image/png")
-        self.assertGreater(len(analyze_args.args[0]), 0)
-
-    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
-    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_returns_400_when_dashscope_analysis_fails(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
-        mock_remove_background.return_value = PNG_BYTES
-        mock_analyze.side_effect = ValueError("bad model output")
-        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
-
-        response = self.client.post(
-            "/api/wardrobe/items/upload/",
-            {"file": upload, "remove_background": "true"},
-            format="multipart",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["detail"], "image analyze failed: bad model output")
-
-    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
-    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_returns_422_when_no_clothing_is_detected(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
-        mock_remove_background.return_value = PNG_BYTES
-        mock_analyze.side_effect = ClothesRecognitionError("No clothing item detected in the image")
-        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
-
-        response = self.client.post(
-            "/api/wardrobe/items/upload/",
-            {"file": upload, "remove_background": "true"},
-            format="multipart",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        self.assertEqual(response.data["detail"], "No clothing item detected in the image")
-        self.assertEqual(response.data["code"], "recognition_failed")
-
-    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
-    def test_upload_returns_503_when_llm_background_removal_fails(self, mock_remove_background: AsyncMock):
-        mock_remove_background.side_effect = ValueError("provider unavailable")
-        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
-
-        response = self.client.post(
-            "/api/wardrobe/items/upload/",
-            {"file": upload, "remove_background": "true"},
-            format="multipart",
-            **self.auth_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-        self.assertEqual(response.data["detail"], "image background removal failed: provider unavailable")
-
-    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
-    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_skips_background_removal_by_default(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
-        mock_analyze.return_value = ClothesSemantics(
-            detected=True,
-            category="top",
-            item="T-shirt",
-            style_semantics=["casual"],
-            season_semantics=["summer"],
-            usage_semantics=["daily"],
-            color_semantics="light",
-            description="A casual summer T-shirt",
-        )
-        upload = SimpleUploadedFile("shirt.jpg", PNG_BYTES, content_type="image/jpeg")
 
         response = self.client.post(
             "/api/wardrobe/items/upload/",
@@ -153,12 +69,44 @@ class WardrobeUploadTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["category"], "top")
         self.assertEqual(response.data["item"], "T-shirt")
-        mock_remove_background.assert_not_awaited()
+        self.assertEqual(response.data["style_semantics"], ["casual"])
         analyze_args = mock_analyze.await_args
         self.assertIsNotNone(analyze_args)
         self.assertEqual(analyze_args.kwargs["mime_type"], "image/jpeg")
         self.assertGreater(len(analyze_args.args[0]), 0)
+
+    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
+    def test_upload_returns_400_when_dashscope_analysis_fails(self, mock_analyze: AsyncMock):
+        mock_analyze.side_effect = ValueError("bad model output")
+        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
+
+        response = self.client.post(
+            "/api/wardrobe/items/upload/",
+            {"file": upload},
+            format="multipart",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "image analyze failed: bad model output")
+
+    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
+    def test_upload_returns_422_when_no_clothing_is_detected(self, mock_analyze: AsyncMock):
+        mock_analyze.side_effect = ClothesRecognitionError("No clothing item detected in the image")
+        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
+
+        response = self.client.post(
+            "/api/wardrobe/items/upload/",
+            {"file": upload},
+            format="multipart",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.data["detail"], "No clothing item detected in the image")
+        self.assertEqual(response.data["code"], "recognition_failed")
 
     def test_upload_returns_400_for_invalid_image_bytes(self):
         upload = SimpleUploadedFile("bad.jpg", b"not-an-image", content_type="image/jpeg")

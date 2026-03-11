@@ -3,7 +3,6 @@ djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
 pillow
-rembg
 onnxruntime
 pydantic
 httpx

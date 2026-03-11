@@ -5,20 +5,11 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.dashscope_service import ClothesRecognitionError, analyze_clothes, edit_image_remove_background
-from services.images import LLM_INPUT_MAX_DIMENSION, LLM_OUTPUT_SIZE, normalize_image_bytes
+from services.dashscope_service import ClothesRecognitionError, analyze_clothes
+from services.images import LLM_INPUT_MAX_DIMENSION, normalize_image_bytes
 
 from .models import ClothingItem
 from .serializers import ClothingItemSerializer
-
-
-def _parse_remove_background_flag(raw_value) -> bool:
-    if isinstance(raw_value, bool):
-        return raw_value
-    if raw_value is None:
-        return False
-    return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
-
 
 class ClothingItemViewSet(viewsets.ModelViewSet):
     serializer_class = ClothingItemSerializer
@@ -68,28 +59,7 @@ class ClothingUploadView(APIView):
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-        remove_background = _parse_remove_background_flag(request.data.get("remove_background"))
-
-        if remove_background:
-            try:
-                processed_bytes = async_to_sync(edit_image_remove_background)(
-                    raw_bytes,
-                    mime_type=processed_mime_type,
-                )
-                processed_bytes, processed_mime_type = normalize_image_bytes(
-                    processed_bytes,
-                    output_format="PNG",
-                    max_dimension=LLM_OUTPUT_SIZE[0],
-                    target_size=LLM_OUTPUT_SIZE,
-                    crop_to_content=True,
-                )
-            except Exception as exc:
-                return Response(
-                    {"detail": f"image background removal failed: {exc}"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-        else:
-            processed_bytes = raw_bytes
+        processed_bytes = raw_bytes
 
         try:
             semantics = async_to_sync(analyze_clothes)(processed_bytes, mime_type=processed_mime_type)

@@ -50,9 +50,7 @@ Then open:
 The app now uses DashScope for:
 
 - clothing image analysis during wardrobe upload
-- clothing image background removal during wardrobe upload
 - outfit recommendation text in the OOTD flow
-- outfit image generation in the OOTD flow
 
 Configure it by environment variables.
 
@@ -62,14 +60,11 @@ Recommended defaults:
 DASHSCOPE_API_BASE=https://dashscope.aliyuncs.com/api/v1
 DASHSCOPE_API_KEY=your_dashscope_api_key_here
 TEXT_OUTPUT_MODEL=qwen3.5-flash
-IMAGE_GENERATION_MODEL=qwen-image-2.0
 ```
 
 Notes:
 
 - the selected text model must support image input if you want wardrobe image analysis to work
-- the selected image generation model must support image editing if you want wardrobe background removal to work
-- outfit image generation uses DashScope `MultiModalConversation` with `IMAGE_GENERATION_MODEL`
 - if the LLM request fails during outfit recommendation, the backend returns an error instead of a fallback recommendation
 - Gemini is no longer used by this project
 

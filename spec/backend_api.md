@@ -288,4 +288,3 @@ WeatherSnapshot 响应示例:
 
 - DashScope 配置不通过前端或后端配置 API 暴露
 - 文本输出模型使用环境变量 `TEXT_OUTPUT_MODEL`
-- 图片生成与编辑使用环境变量 `DASHSCOPE_API_BASE`, `DASHSCOPE_API_KEY`, `IMAGE_GENERATION_MODEL`

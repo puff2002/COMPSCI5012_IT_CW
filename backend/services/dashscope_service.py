@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import re
-import urllib.request
 from typing import Any, Sequence
 
 import dashscope
@@ -15,7 +14,6 @@ from domain.prompts import CLOTHES_SEMANTIC_PROMPT
 
 DASHSCOPE_DEFAULT_API_BASE = "https://dashscope.aliyuncs.com/api/v1"
 DEFAULT_TEXT_OUTPUT_MODEL = "qwen3.5-flash"
-DEFAULT_IMAGE_GENERATION_MODEL = "qwen-image-2.0"
 logger = logging.getLogger(__name__)
 
 
@@ -36,10 +34,6 @@ def _resolve_dashscope_api_base() -> str:
 
 def _resolve_text_output_model_name() -> str:
     return os.getenv("TEXT_OUTPUT_MODEL", "").strip() or DEFAULT_TEXT_OUTPUT_MODEL
-
-
-def _resolve_image_generation_model_name() -> str:
-    return os.getenv("IMAGE_GENERATION_MODEL", "").strip() or DEFAULT_IMAGE_GENERATION_MODEL
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -167,43 +161,6 @@ def _extract_text_from_response(response: Any) -> str:
     return "\n".join(texts)
 
 
-def _extract_generated_image_reference(response: Any) -> str:
-    output = _get_attr(response, "output", {})
-    choices = _get_attr(output, "choices", [])
-    if not isinstance(choices, list) or not choices:
-        raise ValueError("Image generation response did not include any choices")
-
-    message = _get_attr(choices[0], "message", {})
-    content = _get_attr(message, "content", [])
-    if not isinstance(content, list) or not content:
-        raise ValueError("Image generation response did not include content")
-
-    for entry in content:
-        for key in ("image", "image_url", "url"):
-            image_ref = _get_attr(entry, key)
-            if isinstance(image_ref, str) and image_ref.strip():
-                return image_ref.strip()
-
-    raise ValueError("Image generation response did not include an image output")
-
-
-def _decode_generated_image(image_ref: str) -> bytes:
-    if image_ref.startswith("data:"):
-        _, _, payload = image_ref.partition(",")
-        if not payload:
-            raise ValueError("Image generation response returned an empty data URL")
-        return base64.b64decode(payload)
-
-    if image_ref.startswith("http://") or image_ref.startswith("https://"):
-        with urllib.request.urlopen(image_ref, timeout=60) as response:
-            return response.read()
-
-    try:
-        return base64.b64decode(image_ref)
-    except Exception as exc:
-        raise ValueError("Failed to decode generated image output") from exc
-
-
 def _call_multimodal(messages: Sequence[dict[str, object]], *, model: str) -> Any:
     dashscope.base_http_api_url = _resolve_dashscope_api_base()
     response = dashscope.MultiModalConversation.call(
@@ -229,49 +186,6 @@ async def chat_completion(messages: Sequence[dict[str, object]], temperature: fl
         model=_resolve_text_output_model_name(),
     )
     return _extract_text_from_response(response)
-
-
-async def edit_image_remove_background(image_bytes: bytes, mime_type: str = "image/png") -> bytes:
-    encoded = base64.b64encode(image_bytes).decode("utf-8")
-    response = await asyncio.to_thread(
-        _call_multimodal,
-        [
-            {
-                "role": "user",
-                "content": [
-                    {"image": f"data:{mime_type};base64,{encoded}"},
-                    {
-                        "text": (
-                            "Remove the background completely from this clothing image. "
-                            "Keep only the clothing item and exclude everything else. "
-                            "Crop tightly so only the garment remains visible, centered in frame. "
-                            "Preserve the garment shape, texture, and colors. "
-                            "Return a transparent square image intended for 512x512 output. "
-                            "Do not add props, mannequins, people, shadows, floor, or extra empty scene content."
-                        )
-                    },
-                ],
-            }
-        ],
-        model=_resolve_image_generation_model_name(),
-    )
-    return _decode_generated_image(_extract_generated_image_reference(response))
-
-
-async def generate_image(prompt: str, size: str = "1024x1024") -> bytes:
-    del size
-    response = await asyncio.to_thread(
-        _call_multimodal,
-        [
-            {
-                "role": "user",
-                "content": [{"text": f"{prompt}\n\nRender as a square 512x512 image."}],
-            }
-        ],
-        model=_resolve_image_generation_model_name(),
-    )
-    return _decode_generated_image(_extract_generated_image_reference(response))
-
 
 async def analyze_clothes(image_bytes: bytes, mime_type: str = "image/png") -> ClothesSemantics:
     encoded = base64.b64encode(image_bytes).decode("utf-8")

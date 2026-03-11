@@ -36,12 +36,11 @@
       <section class="panel ootd-hero">
         <div>
           <p class="eyebrow">Weather-aware outfit planning</p>
-          <h3>Build an outfit from your wardrobe, then simulate the final look.</h3>
-          <p class="muted">Generate a recommendation from your current location, review the selected pieces, and ask the LLM to produce a styled preview image.</p>
+          <h3>Build an outfit from your wardrobe for today&apos;s conditions.</h3>
+          <p class="muted">Generate a recommendation from your current location and review the selected pieces from your closet.</p>
         </div>
         <form id="locationForm" class="ootd-actions">
           <button id="recommendBtn" class="btn btn-primary" type="submit">Generate OOTD</button>
-          <button id="simulateBtn" class="btn btn-secondary" type="button" disabled>Generate Outfit Preview</button>
         </form>
         <p id="ootdStatus" class="status-line" aria-live="polite"></p>
       </section>
@@ -69,18 +68,6 @@
           </dl>
         </section>
 
-        <section class="panel ootd-preview-panel">
-          <div class="ootd-panel-header">
-            <div>
-              <p class="eyebrow">LLM preview</p>
-              <h3>Simulated Outfit Image</h3>
-            </div>
-          </div>
-          <figure class="ootd-preview-frame">
-            <img id="outfitPreviewImage" src="./assets/img/placeholder-item.svg" alt="Generated outfit preview placeholder">
-          </figure>
-          <p id="previewStatus" class="status-line">Generate an outfit first, then create a simulated preview image.</p>
-        </section>
       </section>
 
       <section class="panel">

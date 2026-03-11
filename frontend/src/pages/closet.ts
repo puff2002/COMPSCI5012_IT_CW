@@ -210,7 +210,6 @@ async function onGridClick(event: Event): Promise<void> {
 async function uploadImage(event: SubmitEvent): Promise<void> {
   event.preventDefault();
   const input = requireElement<HTMLInputElement>("#itemImage");
-  const removeBackground = requireElement<HTMLInputElement>("#removeBackground").checked;
   const file = input.files?.[0];
   if (!file) {
     text("#uploadStatus", "Please choose an image.");
@@ -229,7 +228,7 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
   text("#uploadStatus", "Uploading and analyzing...");
   try {
     const normalizedFile = await normalizeImageFile(file);
-    const analysis = await uploadClosetImage(normalizedFile, removeBackground);
+    const analysis = await uploadClosetImage(normalizedFile);
     editingId = null;
     uploadedImageFile = normalizedFile;
     setComposerVisible(true);

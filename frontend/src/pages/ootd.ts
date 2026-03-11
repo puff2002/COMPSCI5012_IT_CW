@@ -1,11 +1,9 @@
-import { recommend, simulateOutfitImage } from "../api.js";
+import { recommend } from "../api.js";
 import { requireAuth } from "../auth.js";
 import { badge, formatDate, html, initMobileSidebar, requireElement, text, toggleDisabled } from "../ui.js";
 import type { ClothingItem, RecommendationResponse } from "../types.js";
 
 const PLACEHOLDER_IMAGE = "./assets/img/placeholder-item.svg";
-
-let currentRecommendation: RecommendationResponse | null = null;
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "ootd.html";
@@ -75,7 +73,6 @@ function renderItemCard(label: string, item: ClothingItem | null): string {
 
 function renderRecommendation(data: RecommendationResponse): void {
   const { outfit, weather, history, seasons } = data;
-  currentRecommendation = data;
 
   text("#weatherText", `${weather.location} · ${weather.temperature}°C · ${weather.condition}`);
   text("#recommendText", outfit.recommendation_text || "No recommendation text returned.");
@@ -90,17 +87,12 @@ function renderRecommendation(data: RecommendationResponse): void {
       renderItemCard("Shoes", outfit.shoes_detail)
     ].join("")
   );
-  text("#previewStatus", "Preview ready. Use the button above to generate a simulated outfit image.");
-  requireElement<HTMLImageElement>("#outfitPreviewImage").src = PLACEHOLDER_IMAGE;
-  requireElement<HTMLImageElement>("#outfitPreviewImage").alt = "Generated outfit preview placeholder";
-  toggleDisabled("#simulateBtn", false);
 }
 
 async function generate(event?: SubmitEvent): Promise<void> {
   event?.preventDefault();
 
   toggleDisabled("#recommendBtn", true);
-  toggleDisabled("#simulateBtn", true);
   text("#ootdStatus", "Getting your current location...");
 
   try {
@@ -111,10 +103,8 @@ async function generate(event?: SubmitEvent): Promise<void> {
     renderRecommendation(data);
     text("#ootdStatus", "Recommendation generated and history was auto-created.");
   } catch (error) {
-    currentRecommendation = null;
     const message = error instanceof Error ? error.message : "Recommendation failed.";
     text("#ootdStatus", message);
-    text("#previewStatus", "Generate an outfit first, then create a simulated preview image.");
     renderSeasonBadges([]);
     text("#weatherText", "");
     text("#recommendText", "Generate an outfit to see the weather-aware recommendation.");
@@ -126,40 +116,12 @@ async function generate(event?: SubmitEvent): Promise<void> {
   }
 }
 
-async function generateSimulation(): Promise<void> {
-  const outfitId = currentRecommendation?.outfit.id;
-  if (!outfitId) {
-    text("#previewStatus", "Generate an outfit before requesting an image preview.");
-    return;
-  }
-
-  toggleDisabled("#simulateBtn", true);
-  text("#previewStatus", "Generating simulated outfit image...");
-
-  try {
-    const preview = await simulateOutfitImage(outfitId);
-    const image = requireElement<HTMLImageElement>("#outfitPreviewImage");
-    image.src = preview.image_url;
-    image.alt = `Simulated preview for outfit #${preview.outfit_id}`;
-    text("#previewStatus", "Preview generated. You can regenerate it if you want another simulation.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Preview generation failed.";
-    text("#previewStatus", message);
-  } finally {
-    toggleDisabled("#simulateBtn", false);
-  }
-}
-
 function init(): void {
   requireAuth();
   setActiveNav();
   initMobileSidebar();
-  requireElement<HTMLButtonElement>("#simulateBtn").disabled = true;
   requireElement<HTMLFormElement>("#locationForm").addEventListener("submit", (event) => {
     void generate(event as SubmitEvent);
-  });
-  requireElement<HTMLButtonElement>("#simulateBtn").addEventListener("click", () => {
-    void generateSimulation();
   });
 }
 

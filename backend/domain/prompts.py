@@ -13,6 +13,7 @@ Return JSON only. Do not include any explanation.
 
 JSON schema:
 {
+  "detected": true,
   "category": "top | bottom | shoes",
   "item": "Specific clothing item name, such as T-shirt, jeans, or sneakers",
   "style_semantics": ["Style tags such as casual, formal, sporty"],
@@ -22,5 +23,17 @@ JSON schema:
   "description": "A one-sentence semantic summary"
 }
 
-If something cannot be determined, use "unknown".
+If no clothing item is visible or the image does not contain enough outfit information to identify a garment, return:
+{
+  "detected": false,
+  "category": "unknown",
+  "item": "unknown",
+  "style_semantics": [],
+  "season_semantics": [],
+  "usage_semantics": [],
+  "color_semantics": "unknown",
+  "description": "No clothing item detected."
+}
+
+If something cannot be determined but clothing is present, use "unknown".
 """

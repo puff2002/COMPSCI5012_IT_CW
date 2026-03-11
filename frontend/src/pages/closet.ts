@@ -240,7 +240,11 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
     text("#uploadStatus", "Analysis complete. Review the fields and save when ready.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed.";
-    text("#uploadStatus", `${message} Use manual form instead.`);
+    if (message === "No clothing item detected in the image") {
+      text("#uploadStatus", "Recognition failed: no clothing item was detected. Use the manual form instead.");
+    } else {
+      text("#uploadStatus", `${message} Use manual form instead.`);
+    }
   } finally {
     toggleDisabled("#uploadBtn", false);
   }

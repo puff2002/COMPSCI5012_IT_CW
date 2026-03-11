@@ -1,8 +1,9 @@
 import base64
 import json
+import logging
 import os
 import re
-from typing import Sequence
+from typing import Any, Sequence
 
 import httpx
 
@@ -13,6 +14,11 @@ from domain.prompts import CLOTHES_SEMANTIC_PROMPT
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_DEFAULT_MODEL = "openai/gpt-4o-mini"
 OPENROUTER_DEFAULT_IMAGE_MODEL = "openai/gpt-image-1"
+logger = logging.getLogger(__name__)
+
+
+class ClothesRecognitionError(ValueError):
+    """Raised when the image does not contain enough clothing information."""
 
 
 def _resolve_api_base() -> str:
@@ -35,26 +41,41 @@ def _resolve_image_model_name() -> str:
     return os.getenv("OPENROUTER_IMAGE_MODEL", "").strip() or OPENROUTER_DEFAULT_IMAGE_MODEL
 
 
-def _extract_json(text: str) -> dict:
+def _extract_json(text: str) -> dict[str, Any]:
+    parsed: Any = None
     try:
-        return json.loads(text)
+        parsed = json.loads(text)
     except json.JSONDecodeError:
-        pass
+        parsed = None
+    else:
+        if isinstance(parsed, dict):
+            return parsed
+        logger.warning("Expected JSON object from model but received %s: %s", type(parsed).__name__, text)
+        raise ValueError(f"Expected JSON object from model response, got {type(parsed).__name__}")
 
     fenced_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
     if fenced_match:
         try:
-            return json.loads(fenced_match.group(1))
+            parsed = json.loads(fenced_match.group(1))
         except json.JSONDecodeError:
-            pass
+            parsed = None
+        else:
+            if isinstance(parsed, dict):
+                return parsed
+            logger.warning("Expected JSON object from fenced model response but received %s: %s", type(parsed).__name__, text)
+            raise ValueError(f"Expected JSON object from model response, got {type(parsed).__name__}")
 
     brace_match = re.search(r"\{[\s\S]*\}", text)
     if brace_match:
         try:
-            return json.loads(brace_match.group(0))
+            parsed = json.loads(brace_match.group(0))
         except json.JSONDecodeError:
-            pass
+            parsed = None
+        else:
+            if isinstance(parsed, dict):
+                return parsed
 
+    logger.warning("Failed to parse model response as JSON object: %s", text)
     raise ValueError("Could not parse JSON from model response")
 
 
@@ -72,6 +93,7 @@ async def chat_completion(messages: Sequence[dict[str, object]], temperature: fl
         "model": _resolve_model_name(),
         "messages": list(messages),
         "temperature": temperature,
+        "response_format": {"type": "json_object"},
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -205,4 +227,11 @@ async def analyze_clothes(image_bytes: bytes, mime_type: str = "image/png") -> C
         ],
         temperature=0,
     )
-    return ClothesSemantics(**_extract_json(text))
+    try:
+        semantics = ClothesSemantics(**_extract_json(text))
+    except Exception:
+        logger.exception("Failed to parse clothes semantics from model response: %s", text)
+        raise
+    if not semantics.detected:
+        raise ClothesRecognitionError("No clothing item detected in the image")
+    return semantics

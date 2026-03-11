@@ -164,30 +164,32 @@ POST `/api/wardrobe/items/upload/`
 说明: 上传图片并自动识别衣物  
 Content-Type: `multipart/form-data`  
 表单字段: `file` 或 `image`  
-响应 201: ClothingItem
-
-curl 示例:
-```bash
-curl -X POST http://127.0.0.1:8000/api/wardrobe/items/upload/ \
-  -H "Authorization: Bearer <access_token>" \
-  -F "file=@/path/to/image.png"
-```
-
-ClothingItem 响应示例:
+响应 200:
 ```json
 {
-  "id": 1,
   "category": "top",
   "item": "T恤",
   "style_semantics": ["休闲"],
   "season_semantics": ["夏季"],
   "usage_semantics": ["日常"],
   "color_semantics": "白色",
-  "description": "基础款",
-  "image": "/media/items/xxx.png",
-  "image_url": "http://127.0.0.1:8000/media/items/xxx.png",
-  "created_at": "2026-03-04T12:00:00Z"
+  "description": "基础款"
 }
+```
+
+失败 422:
+```json
+{
+  "detail": "No clothing item detected in the image",
+  "code": "recognition_failed"
+}
+```
+
+curl 示例:
+```bash
+curl -X POST http://127.0.0.1:8000/api/wardrobe/items/upload/ \
+  -H "Authorization: Bearer <access_token>" \
+  -F "file=@/path/to/image.png"
 ```
 
 ## 穿搭 `/api/outfits`

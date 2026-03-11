@@ -2,12 +2,13 @@
 服装语义数据结构定义
 """
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from datetime import datetime
 
 
 class ClothesSemantics(BaseModel):
     """衣物语义数据结构"""
+    detected: bool = True  # 是否检测到有效衣物
     category: str  # top | bottom | shoes
     item: str  # 具体衣物名称
     style_semantics: List[str]  # 风格标签

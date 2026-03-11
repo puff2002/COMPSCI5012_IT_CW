@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from domain.clothes import ClothesSemantics
+from services.openrouter import ClothesRecognitionError
 from .models import ClothingItem
 
 User = get_user_model()
@@ -51,6 +52,7 @@ class WardrobeUploadTests(APITestCase):
     def test_upload_returns_analysis_from_openrouter_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
         mock_remove_background.return_value = PNG_BYTES
         mock_analyze.return_value = ClothesSemantics(
+            detected=True,
             category="top",
             item="T-shirt",
             style_semantics=["casual"],
@@ -96,6 +98,24 @@ class WardrobeUploadTests(APITestCase):
         self.assertEqual(response.data["detail"], "image analyze failed: bad model output")
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
+    @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
+    def test_upload_returns_422_when_no_clothing_is_detected(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
+        mock_remove_background.return_value = PNG_BYTES
+        mock_analyze.side_effect = ClothesRecognitionError("No clothing item detected in the image")
+        upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
+
+        response = self.client.post(
+            "/api/wardrobe/items/upload/",
+            {"file": upload, "remove_background": "true"},
+            format="multipart",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.data["detail"], "No clothing item detected in the image")
+        self.assertEqual(response.data["code"], "recognition_failed")
+
+    @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     def test_upload_returns_503_when_llm_background_removal_fails(self, mock_remove_background: AsyncMock):
         mock_remove_background.side_effect = ValueError("provider unavailable")
         upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")
@@ -114,6 +134,7 @@ class WardrobeUploadTests(APITestCase):
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
     def test_upload_skips_background_removal_by_default(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
         mock_analyze.return_value = ClothesSemantics(
+            detected=True,
             category="top",
             item="T-shirt",
             style_semantics=["casual"],

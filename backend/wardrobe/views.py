@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from services.images import normalize_image_bytes
-from services.openrouter import analyze_clothes, edit_image_remove_background
+from services.openrouter import ClothesRecognitionError, analyze_clothes, edit_image_remove_background
 
 from .models import ClothingItem
 from .serializers import ClothingItemSerializer
@@ -83,6 +83,11 @@ class ClothingUploadView(APIView):
 
         try:
             semantics = async_to_sync(analyze_clothes)(processed_bytes, mime_type=processed_mime_type)
+        except ClothesRecognitionError as exc:
+            return Response(
+                {"detail": str(exc), "code": "recognition_failed"},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
         except Exception as exc:
             return Response({"detail": f"image analyze failed: {exc}"}, status=status.HTTP_400_BAD_REQUEST)
 

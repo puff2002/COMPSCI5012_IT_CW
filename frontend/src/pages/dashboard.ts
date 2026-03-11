@@ -1,6 +1,6 @@
 import { requireAuth } from "../auth.js";
 import { getMe } from "../api.js";
-import { text } from "../ui.js";
+import { initMobileSidebar, text } from "../ui.js";
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "dashboard.html";
@@ -16,6 +16,7 @@ function setActiveNav(): void {
 async function initDashboard(): Promise<void> {
   requireAuth();
   setActiveNav();
+  initMobileSidebar();
 
   try {
     const user = await getMe();

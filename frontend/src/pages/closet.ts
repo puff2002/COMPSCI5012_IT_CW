@@ -1,7 +1,7 @@
 import { createClosetItem, deleteClosetItem, getClosetItems, updateClosetItem, uploadClosetImage } from "../api.js";
 import { requireAuth } from "../auth.js";
 import { normalizeImageFile } from "../image.js";
-import { badge, formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
+import { badge, formatDate, html, initMobileSidebar, requireElement, text, toggleDisabled } from "../ui.js";
 import type { Category, ClothingAnalysis, ClothingItem } from "../types.js";
 
 let items: ClothingItem[] = [];
@@ -249,6 +249,7 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
+  initMobileSidebar();
   setComposerVisible(false);
   setDetailsCardVisible(false);
 

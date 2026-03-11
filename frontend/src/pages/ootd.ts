@@ -1,6 +1,6 @@
 import { recommend, simulateOutfitImage } from "../api.js";
 import { requireAuth } from "../auth.js";
-import { badge, formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
+import { badge, formatDate, html, initMobileSidebar, requireElement, text, toggleDisabled } from "../ui.js";
 import type { ClothingItem, RecommendationResponse } from "../types.js";
 
 const PLACEHOLDER_IMAGE = "./assets/img/placeholder-item.svg";
@@ -153,6 +153,7 @@ async function generateSimulation(): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
+  initMobileSidebar();
   requireElement<HTMLButtonElement>("#simulateBtn").disabled = true;
   requireElement<HTMLFormElement>("#locationForm").addEventListener("submit", (event) => {
     void generate(event as SubmitEvent);

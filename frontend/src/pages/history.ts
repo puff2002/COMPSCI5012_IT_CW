@@ -1,6 +1,6 @@
 import { createHistory, deleteHistory, getHistory, updateHistory } from "../api.js";
 import { requireAuth } from "../auth.js";
-import { formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
+import { formatDate, html, initMobileSidebar, requireElement, text, toggleDisabled } from "../ui.js";
 import type { OutfitHistory } from "../types.js";
 
 let historyItems: OutfitHistory[] = [];
@@ -140,6 +140,7 @@ function resetEditor(): void {
 function init(): void {
   requireAuth();
   setActiveNav();
+  initMobileSidebar();
   requireElement<HTMLFormElement>("#historyForm").addEventListener("submit", (event) => {
     void submitForm(event as SubmitEvent);
   });

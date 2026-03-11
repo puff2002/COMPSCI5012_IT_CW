@@ -49,3 +49,48 @@ export function requireElement<T extends Element>(selector: string): T {
 export function badge(textValue: string, kind: "ok" | "warn" | "error" = "ok"): string {
   return `<span class="status-badge status-${kind}">${textValue}</span>`;
 }
+
+export function initMobileSidebar(): void {
+  const sidebar = document.querySelector<HTMLElement>(".app-sidebar");
+  const nav = document.querySelector<HTMLElement>(".app-nav");
+  const toggle = document.querySelector<HTMLButtonElement>(".app-nav-toggle");
+
+  if (!sidebar || !nav || !toggle) {
+    return;
+  }
+
+  const mobileQuery = window.matchMedia("(max-width: 960px)");
+
+  const setExpanded = (expanded: boolean): void => {
+    toggle.textContent = expanded ? "Hide menu" : "Show menu";
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.setAttribute("aria-label", expanded ? "Hide navigation menu" : "Show navigation menu");
+    sidebar.classList.toggle("is-nav-open", expanded && mobileQuery.matches);
+    nav.setAttribute("aria-hidden", String(mobileQuery.matches ? !expanded : false));
+  };
+
+  const syncForViewport = (): void => {
+    sidebar.classList.toggle("is-collapsible", mobileQuery.matches);
+    setExpanded(!mobileQuery.matches);
+  };
+
+  toggle.hidden = false;
+  toggle.addEventListener("click", () => {
+    if (!mobileQuery.matches) {
+      return;
+    }
+    const expanded = toggle.getAttribute("aria-expanded") === "true";
+    setExpanded(!expanded);
+  });
+
+  nav.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (mobileQuery.matches) {
+        setExpanded(false);
+      }
+    });
+  });
+
+  mobileQuery.addEventListener("change", syncForViewport);
+  syncForViewport();
+}

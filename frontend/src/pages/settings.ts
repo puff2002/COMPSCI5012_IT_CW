@@ -1,7 +1,7 @@
 import { getMe, logout } from "../api.js";
 import { clearTokens, getRefreshToken, requireAuth } from "../auth.js";
 import { ROUTES } from "../config.js";
-import { requireElement, text } from "../ui.js";
+import { initMobileSidebar, requireElement, text } from "../ui.js";
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "settings.html";
@@ -42,6 +42,7 @@ async function onLogout(): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
+  initMobileSidebar();
   requireElement<HTMLButtonElement>("#logoutBtn").addEventListener("click", () => {
     void onLogout();
   });

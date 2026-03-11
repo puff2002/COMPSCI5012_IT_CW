@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from domain.clothes import ClothesSemantics
-from services.openrouter import ClothesRecognitionError
+from services.dashscope_service import ClothesRecognitionError
 from .models import ClothingItem
 
 User = get_user_model()
@@ -49,7 +49,7 @@ class WardrobeUploadTests(APITestCase):
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_returns_analysis_from_openrouter_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
+    def test_upload_returns_analysis_from_dashscope_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
         mock_remove_background.return_value = PNG_BYTES
         mock_analyze.return_value = ClothesSemantics(
             detected=True,
@@ -82,7 +82,7 @@ class WardrobeUploadTests(APITestCase):
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_returns_400_when_openrouter_analysis_fails(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
+    def test_upload_returns_400_when_dashscope_analysis_fails(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
         mock_remove_background.return_value = PNG_BYTES
         mock_analyze.side_effect = ValueError("bad model output")
         upload = SimpleUploadedFile("shirt.png", PNG_BYTES, content_type="image/png")

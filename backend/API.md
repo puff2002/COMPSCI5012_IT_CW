@@ -195,7 +195,7 @@ curl -X POST http://127.0.0.1:8000/api/wardrobe/items/upload/ \
 ## 穿搭 `/api/outfits`
 
 POST `/api/outfits/recommend/`  
-说明: 基于浏览器 GPS 坐标查询天气并结合衣橱生成推荐，推荐文本由 OpenRouter LLM 生成  
+说明: 基于浏览器 GPS 坐标查询天气并结合衣橱生成推荐，推荐文本由 DashScope LLM 生成  
 请求体:
 ```json
 { "latitude": -37.8136, "longitude": 144.9631 }
@@ -288,6 +288,6 @@ WeatherSnapshot 响应示例:
 
 说明:
 
-- OpenRouter 配置不通过前端或后端配置 API 暴露
-- OpenRouter 使用环境变量 `OPENROUTER_API_BASE`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
-- LLM 图片编辑模型使用环境变量 `OPENROUTER_IMAGE_MODEL`，默认 `openai/gpt-image-1`
+- DashScope 配置不通过前端或后端配置 API 暴露
+- 文本输出模型使用环境变量 `TEXT_OUTPUT_MODEL`
+- 图片生成与编辑使用环境变量 `DASHSCOPE_API_BASE`, `DASHSCOPE_API_KEY`, `IMAGE_GENERATION_MODEL`

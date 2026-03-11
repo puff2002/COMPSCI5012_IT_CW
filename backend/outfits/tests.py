@@ -228,7 +228,7 @@ class OutfitRecommendationTests(APITestCase):
         mock_get_weather: AsyncMock,
     ):
         mock_get_weather.return_value = self._weather()
-        mock_recommendation.side_effect = ValueError("OpenRouter down")
+        mock_recommendation.side_effect = ValueError("DashScope down")
 
         response = self.client.post(
             "/api/outfits/recommend/",

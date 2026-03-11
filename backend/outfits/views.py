@@ -6,7 +6,8 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.openrouter import generate_image
+from services.dashscope_service import generate_image
+from services.images import LLM_OUTPUT_SIZE, normalize_image_bytes
 from services.recommendation import (
     build_outfit_image_prompt,
     build_recommendation_text,
@@ -200,6 +201,12 @@ class OutfitSimulationView(APIView):
 
         try:
             image_bytes = async_to_sync(generate_image)(prompt)
+            image_bytes, _ = normalize_image_bytes(
+                image_bytes,
+                output_format="PNG",
+                max_dimension=LLM_OUTPUT_SIZE[0],
+                target_size=LLM_OUTPUT_SIZE,
+            )
         except Exception:
             return Response({"detail": "outfit image generation unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 

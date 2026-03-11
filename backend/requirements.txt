@@ -7,4 +7,5 @@ rembg
 onnxruntime
 pydantic
 httpx
+dashscope
 python-dotenv

@@ -5,8 +5,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.images import normalize_image_bytes
-from services.openrouter import ClothesRecognitionError, analyze_clothes, edit_image_remove_background
+from services.dashscope_service import ClothesRecognitionError, analyze_clothes, edit_image_remove_background
+from services.images import LLM_INPUT_MAX_DIMENSION, LLM_OUTPUT_SIZE, normalize_image_bytes
 
 from .models import ClothingItem
 from .serializers import ClothingItemSerializer
@@ -60,7 +60,11 @@ class ClothingUploadView(APIView):
             return Response({"detail": "only image files supported"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            raw_bytes, processed_mime_type = normalize_image_bytes(upload.read(), output_format="JPEG")
+            raw_bytes, processed_mime_type = normalize_image_bytes(
+                upload.read(),
+                output_format="JPEG",
+                max_dimension=LLM_INPUT_MAX_DIMENSION,
+            )
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,7 +76,13 @@ class ClothingUploadView(APIView):
                     raw_bytes,
                     mime_type=processed_mime_type,
                 )
-                processed_bytes, processed_mime_type = normalize_image_bytes(processed_bytes, output_format="PNG")
+                processed_bytes, processed_mime_type = normalize_image_bytes(
+                    processed_bytes,
+                    output_format="PNG",
+                    max_dimension=LLM_OUTPUT_SIZE[0],
+                    target_size=LLM_OUTPUT_SIZE,
+                    crop_to_content=True,
+                )
             except Exception as exc:
                 return Response(
                     {"detail": f"image background removal failed: {exc}"},

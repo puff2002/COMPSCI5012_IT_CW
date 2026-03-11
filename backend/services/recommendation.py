@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from services.openrouter import chat_completion
+from services.dashscope_service import chat_completion
 from services.weather import WeatherInfo
 
 

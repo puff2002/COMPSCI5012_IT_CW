@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from domain.clothes import ClothesSemantics
-from wardrobe.models import ClothingItem
 
 User = get_user_model()
 
@@ -36,7 +35,7 @@ class WardrobeUploadTests(APITestCase):
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
-    def test_upload_creates_item_from_openrouter_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
+    def test_upload_returns_analysis_from_openrouter_semantics(self, mock_analyze: AsyncMock, mock_remove_background: AsyncMock):
         mock_remove_background.return_value = PNG_BYTES
         mock_analyze.return_value = ClothesSemantics(
             category="top",
@@ -56,16 +55,15 @@ class WardrobeUploadTests(APITestCase):
             **self.auth_headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ClothingItem.objects.count(), 1)
-        item = ClothingItem.objects.get()
-        self.assertEqual(item.owner, self.user)
-        self.assertEqual(item.category, "top")
-        self.assertEqual(item.item, "T-shirt")
-        self.assertEqual(item.style_semantics, ["casual"])
-        self.assertTrue(item.image.name.endswith(".png"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["category"], "top")
+        self.assertEqual(response.data["item"], "T-shirt")
+        self.assertEqual(response.data["style_semantics"], ["casual"])
         mock_remove_background.assert_awaited_once()
-        mock_analyze.assert_awaited_once_with(PNG_BYTES, mime_type="image/png")
+        analyze_args = mock_analyze.await_args
+        self.assertIsNotNone(analyze_args)
+        self.assertEqual(analyze_args.kwargs["mime_type"], "image/png")
+        self.assertGreater(len(analyze_args.args[0]), 0)
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
@@ -83,7 +81,6 @@ class WardrobeUploadTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["detail"], "image analyze failed: bad model output")
-        self.assertEqual(ClothingItem.objects.count(), 0)
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     def test_upload_returns_503_when_llm_background_removal_fails(self, mock_remove_background: AsyncMock):
@@ -99,7 +96,6 @@ class WardrobeUploadTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["detail"], "image background removal failed: provider unavailable")
-        self.assertEqual(ClothingItem.objects.count(), 0)
 
     @patch("wardrobe.views.edit_image_remove_background", new_callable=AsyncMock)
     @patch("wardrobe.views.analyze_clothes", new_callable=AsyncMock)
@@ -122,9 +118,23 @@ class WardrobeUploadTests(APITestCase):
             **self.auth_headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ClothingItem.objects.count(), 1)
-        item = ClothingItem.objects.get()
-        self.assertTrue(item.image.name.endswith(".jpg"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["item"], "T-shirt")
         mock_remove_background.assert_not_awaited()
-        mock_analyze.assert_awaited_once_with(PNG_BYTES, mime_type="image/jpeg")
+        analyze_args = mock_analyze.await_args
+        self.assertIsNotNone(analyze_args)
+        self.assertEqual(analyze_args.kwargs["mime_type"], "image/jpeg")
+        self.assertGreater(len(analyze_args.args[0]), 0)
+
+    def test_upload_returns_400_for_invalid_image_bytes(self):
+        upload = SimpleUploadedFile("bad.jpg", b"not-an-image", content_type="image/jpeg")
+
+        response = self.client.post(
+            "/api/wardrobe/items/upload/",
+            {"file": upload},
+            format="multipart",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "unsupported or corrupted image")

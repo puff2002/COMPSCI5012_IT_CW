@@ -1,14 +1,11 @@
-import uuid
-
 from asgiref.sync import async_to_sync
-from django.core.files.base import ContentFile
-from django.utils.text import get_valid_filename
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from services.images import normalize_image_bytes
 from services.openrouter import analyze_clothes, edit_image_remove_background
 
 from .models import ClothingItem
@@ -21,18 +18,6 @@ def _parse_remove_background_flag(raw_value) -> bool:
     if raw_value is None:
         return False
     return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _output_name(upload_name: str, remove_background: bool) -> str:
-    if remove_background:
-        return f"{uuid.uuid4()}.png"
-
-    sanitized = get_valid_filename(upload_name or "upload")
-    if "." in sanitized:
-        extension = sanitized.rsplit(".", 1)[1]
-        if extension:
-            return f"{uuid.uuid4()}.{extension.lower()}"
-    return str(uuid.uuid4())
 
 
 class ClothingItemViewSet(viewsets.ModelViewSet):
@@ -74,9 +59,12 @@ class ClothingUploadView(APIView):
         if not upload.content_type or not upload.content_type.startswith("image/"):
             return Response({"detail": "only image files supported"}, status=status.HTTP_400_BAD_REQUEST)
 
-        raw_bytes = upload.read()
+        try:
+            raw_bytes, processed_mime_type = normalize_image_bytes(upload.read(), output_format="JPEG")
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
         remove_background = _parse_remove_background_flag(request.data.get("remove_background"))
-        processed_mime_type = upload.content_type or "image/png"
 
         if remove_background:
             try:
@@ -84,7 +72,7 @@ class ClothingUploadView(APIView):
                     raw_bytes,
                     mime_type=processed_mime_type,
                 )
-                processed_mime_type = "image/png"
+                processed_bytes, processed_mime_type = normalize_image_bytes(processed_bytes, output_format="PNG")
             except Exception as exc:
                 return Response(
                     {"detail": f"image background removal failed: {exc}"},
@@ -98,19 +86,15 @@ class ClothingUploadView(APIView):
         except Exception as exc:
             return Response({"detail": f"image analyze failed: {exc}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        item = ClothingItem.objects.create(
-            owner=request.user,
-            category=semantics.category,
-            item=semantics.item,
-            style_semantics=semantics.style_semantics,
-            season_semantics=semantics.season_semantics,
-            usage_semantics=semantics.usage_semantics,
-            color_semantics=semantics.color_semantics,
-            description=semantics.description,
+        return Response(
+            {
+                "category": semantics.category,
+                "item": semantics.item,
+                "style_semantics": semantics.style_semantics,
+                "season_semantics": semantics.season_semantics,
+                "usage_semantics": semantics.usage_semantics,
+                "color_semantics": semantics.color_semantics,
+                "description": semantics.description,
+            },
+            status=status.HTTP_200_OK,
         )
-
-        filename = _output_name(upload.name, remove_background)
-        item.image.save(filename, ContentFile(processed_bytes), save=True)
-
-        serializer = ClothingItemSerializer(item, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

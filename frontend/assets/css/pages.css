@@ -52,6 +52,23 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.section-header,
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.closet-composer {
+  display: grid;
+  gap: 1rem;
+}
+
+.closet-composer.is-hidden {
+  display: none;
+}
+
 .item-card,
 .history-card {
   background: var(--panel-alt);

@@ -3,6 +3,7 @@ import { API_BASE, ROUTES } from "./config.js";
 import { parseError } from "./ui.js";
 import type {
   AuthTokens,
+  ClothingAnalysis,
   ClothingItem,
   OutfitHistory,
   RecommendationResponse,
@@ -11,6 +12,17 @@ import type {
 } from "./types.js";
 
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+export interface ClosetItemDraft {
+  category: ClothingAnalysis["category"];
+  item: string;
+  style_semantics: string[];
+  season_semantics: string[];
+  usage_semantics: string[];
+  color_semantics: string;
+  description: string;
+  image?: File;
+}
 
 interface RequestOptions {
   method?: Method;
@@ -129,7 +141,7 @@ export async function getClosetItems(): Promise<ClothingItem[]> {
   return parseJson<ClothingItem[]>(response);
 }
 
-export async function createClosetItem(payload: Omit<ClothingItem, "id" | "image" | "image_url" | "created_at">): Promise<ClothingItem> {
+export async function createClosetItem(payload: ClosetItemDraft): Promise<ClothingItem> {
   const form = new FormData();
   form.append("category", payload.category);
   form.append("item", payload.item);
@@ -138,6 +150,7 @@ export async function createClosetItem(payload: Omit<ClothingItem, "id" | "image
   form.append("usage_semantics", JSON.stringify(payload.usage_semantics));
   form.append("color_semantics", payload.color_semantics);
   form.append("description", payload.description);
+  if (payload.image) form.append("image", payload.image);
   const response = await request("/wardrobe/items/", {
     method: "POST",
     body: form
@@ -168,17 +181,15 @@ export async function deleteClosetItem(id: number): Promise<void> {
   }
 }
 
-export async function uploadClosetImage(file: File, removeBackground = false): Promise<ClothingItem> {
-  const token = getAccessToken();
+export async function uploadClosetImage(file: File, removeBackground = false): Promise<ClothingAnalysis> {
   const form = new FormData();
   form.append("file", file);
   form.append("remove_background", String(removeBackground));
-  const response = await fetch(`${API_BASE}/wardrobe/items/upload/`, {
+  const response = await request("/wardrobe/items/upload/", {
     method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form
   });
-  return parseJson<ClothingItem>(response);
+  return parseJson<ClothingAnalysis>(response);
 }
 
 export async function recommend(latitude: number, longitude: number): Promise<RecommendationResponse> {

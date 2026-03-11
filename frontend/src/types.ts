@@ -32,6 +32,16 @@ export interface ClothingItem {
   created_at: string;
 }
 
+export interface ClothingAnalysis {
+  category: Category;
+  item: string;
+  style_semantics: string[];
+  season_semantics: string[];
+  usage_semantics: string[];
+  color_semantics: string;
+  description: string;
+}
+
 export interface Outfit {
   id: number;
   top: number | null;

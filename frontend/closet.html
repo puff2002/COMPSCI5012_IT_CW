@@ -25,82 +25,15 @@
     <main class="app-main" id="main-content">
       <header class="page-header">
         <h2>My Closet</h2>
+        <button id="toggleComposerBtn" class="btn btn-primary" type="button" aria-expanded="false" aria-controls="closetComposer">
+          Add Item
+        </button>
       </header>
 
       <section class="panel">
-        <h3 id="itemFormTitle">Add New Item</h3>
-        <form id="itemForm" novalidate>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="itemCategory">Category</label>
-              <select id="itemCategory" class="select" required>
-                <option value="">Select category</option>
-                <option value="top">Top</option>
-                <option value="bottom">Bottom</option>
-                <option value="shoes">Shoes</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="itemName">Item Name</label>
-              <input id="itemName" class="input" required>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="itemStyle">Style tags (comma-separated)</label>
-              <input id="itemStyle" class="input" placeholder="casual, minimalist">
-            </div>
-            <div class="form-field">
-              <label for="itemSeason">Season tags (comma-separated)</label>
-              <input id="itemSeason" class="input" placeholder="summer, spring">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="itemUsage">Usage tags (comma-separated)</label>
-              <input id="itemUsage" class="input" placeholder="daily, office">
-            </div>
-            <div class="form-field">
-              <label for="itemColor">Color</label>
-              <input id="itemColor" class="input" placeholder="white">
-            </div>
-          </div>
-          <div class="form-field">
-            <label for="itemDescription">Description</label>
-            <input id="itemDescription" class="input" placeholder="notes">
-          </div>
-          <p id="itemError" class="status-line status-error" aria-live="polite"></p>
-          <div class="item-actions">
-            <button id="itemSubmit" class="btn btn-primary" type="submit">Save item</button>
-            <button id="itemReset" class="btn btn-secondary" type="button">Reset</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel">
-        <h3>Upload and Auto Analyze</h3>
-        <form id="uploadForm">
-          <div class="form-row">
-            <div class="form-field">
-              <label for="itemImage">Image</label>
-              <input id="itemImage" class="input" type="file" accept="image/*" required>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label>
-                <input id="removeBackground" type="checkbox">
-                Remove clothing background before analysis
-              </label>
-            </div>
-          </div>
-          <p id="uploadStatus" class="status-line" aria-live="polite"></p>
-          <button id="uploadBtn" class="btn btn-secondary" type="submit">Upload</button>
-        </form>
-      </section>
-
-      <section class="panel">
-        <h3>Closet Items</h3>
+        <div class="section-header">
+          <h3>Closet Items</h3>
+        </div>
         <div class="form-row">
           <div class="form-field">
             <label for="filterText">Search</label>
@@ -118,6 +51,81 @@
         </div>
         <p id="closetStatus" class="status-line" aria-live="polite"></p>
         <section id="itemsGrid" class="items-grid" aria-label="Closet items"></section>
+      </section>
+
+      <section id="closetComposer" class="closet-composer is-hidden" aria-hidden="true">
+        <section class="panel">
+          <h3 id="itemFormTitle">Add New Item</h3>
+          <form id="itemForm" novalidate>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="itemCategory">Category</label>
+                <select id="itemCategory" class="select" required>
+                  <option value="">Select category</option>
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                  <option value="shoes">Shoes</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="itemName">Item Name</label>
+                <input id="itemName" class="input" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="itemStyle">Style tags (comma-separated)</label>
+                <input id="itemStyle" class="input" placeholder="casual, minimalist">
+              </div>
+              <div class="form-field">
+                <label for="itemSeason">Season tags (comma-separated)</label>
+                <input id="itemSeason" class="input" placeholder="summer, spring">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="itemUsage">Usage tags (comma-separated)</label>
+                <input id="itemUsage" class="input" placeholder="daily, office">
+              </div>
+              <div class="form-field">
+                <label for="itemColor">Color</label>
+                <input id="itemColor" class="input" placeholder="white">
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="itemDescription">Description</label>
+              <input id="itemDescription" class="input" placeholder="notes">
+            </div>
+            <p id="itemImageStatus" class="status-line" aria-live="polite"></p>
+            <p id="itemError" class="status-line status-error" aria-live="polite"></p>
+            <div class="item-actions">
+              <button id="itemSubmit" class="btn btn-primary" type="submit">Save item</button>
+              <button id="itemReset" class="btn btn-secondary" type="button">Reset</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h3>Upload and Auto Analyze</h3>
+          <form id="uploadForm">
+            <div class="form-row">
+              <div class="form-field">
+                <label for="itemImage">Image</label>
+                <input id="itemImage" class="input" type="file" accept="image/*" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>
+                  <input id="removeBackground" type="checkbox">
+                  Remove clothing background before analysis
+                </label>
+              </div>
+            </div>
+            <p id="uploadStatus" class="status-line" aria-live="polite"></p>
+            <button id="uploadBtn" class="btn btn-secondary" type="submit">Upload</button>
+          </form>
+        </section>
       </section>
     </main>
   </div>

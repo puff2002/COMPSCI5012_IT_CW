@@ -1,10 +1,12 @@
 import { createClosetItem, deleteClosetItem, getClosetItems, updateClosetItem, uploadClosetImage } from "../api.js";
 import { requireAuth } from "../auth.js";
+import { normalizeImageFile } from "../image.js";
 import { badge, formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
-import type { Category, ClothingItem } from "../types.js";
+import type { Category, ClothingAnalysis, ClothingItem } from "../types.js";
 
 let items: ClothingItem[] = [];
 let editingId: number | null = null;
+let uploadedImageFile: File | null = null;
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "closet.html";
@@ -25,6 +27,25 @@ function normalizeCategory(raw: string): Category | null {
 
 function parseTags(value: string): string[] {
   return value.split(",").map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+}
+
+function setComposerVisible(visible: boolean): void {
+  const composer = requireElement<HTMLElement>("#closetComposer");
+  const toggleButton = requireElement<HTMLButtonElement>("#toggleComposerBtn");
+  composer.classList.toggle("is-hidden", !visible);
+  composer.setAttribute("aria-hidden", String(!visible));
+  toggleButton.setAttribute("aria-expanded", String(visible));
+  toggleButton.textContent = visible ? "Close" : "Add Item";
+}
+
+function applyAnalysisToForm(analysis: ClothingAnalysis): void {
+  requireElement<HTMLSelectElement>("#itemCategory").value = analysis.category;
+  requireElement<HTMLInputElement>("#itemName").value = analysis.item;
+  requireElement<HTMLInputElement>("#itemStyle").value = analysis.style_semantics.join(", ");
+  requireElement<HTMLInputElement>("#itemSeason").value = analysis.season_semantics.join(", ");
+  requireElement<HTMLInputElement>("#itemUsage").value = analysis.usage_semantics.join(", ");
+  requireElement<HTMLInputElement>("#itemColor").value = analysis.color_semantics;
+  requireElement<HTMLInputElement>("#itemDescription").value = analysis.description;
 }
 
 function renderList(): void {
@@ -78,9 +99,13 @@ async function loadItems(): Promise<void> {
 
 function resetForm(): void {
   editingId = null;
+  uploadedImageFile = null;
   requireElement<HTMLFormElement>("#itemForm").reset();
+  requireElement<HTMLFormElement>("#uploadForm").reset();
   text("#itemFormTitle", "Add New Item");
   text("#itemError", "");
+  text("#uploadStatus", "");
+  text("#itemImageStatus", "");
 }
 
 async function submitItem(event: SubmitEvent): Promise<void> {
@@ -93,7 +118,7 @@ async function submitItem(event: SubmitEvent): Promise<void> {
     return;
   }
 
-  const payload = {
+  const basePayload = {
     category,
     item: requireElement<HTMLInputElement>("#itemName").value.trim(),
     style_semantics: parseTags(requireElement<HTMLInputElement>("#itemStyle").value),
@@ -108,12 +133,13 @@ async function submitItem(event: SubmitEvent): Promise<void> {
 
   try {
     if (editingId) {
-      await updateClosetItem(editingId, payload);
+      await updateClosetItem(editingId, basePayload);
     } else {
-      await createClosetItem(payload);
+      await createClosetItem(uploadedImageFile ? { ...basePayload, image: uploadedImageFile } : basePayload);
     }
     await loadItems();
     resetForm();
+    setComposerVisible(false);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save item.";
     text("#itemError", message);
@@ -153,7 +179,9 @@ async function onGridClick(event: Event): Promise<void> {
     if (!existing) {
       return;
     }
+    setComposerVisible(true);
     editingId = id;
+    uploadedImageFile = null;
     text("#itemFormTitle", `Edit Item #${id}`);
     requireElement<HTMLSelectElement>("#itemCategory").value = existing.category;
     requireElement<HTMLInputElement>("#itemName").value = existing.item;
@@ -162,6 +190,8 @@ async function onGridClick(event: Event): Promise<void> {
     requireElement<HTMLInputElement>("#itemUsage").value = existing.usage_semantics.join(", ");
     requireElement<HTMLInputElement>("#itemColor").value = existing.color_semantics;
     requireElement<HTMLInputElement>("#itemDescription").value = existing.description;
+    text("#itemImageStatus", existing.image_url ? "Using the saved item data. Upload a photo only if you want to analyze a new item draft." : "");
+    text("#uploadStatus", "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
@@ -187,10 +217,15 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
   toggleDisabled("#uploadBtn", true);
   text("#uploadStatus", "Uploading and analyzing...");
   try {
-    await uploadClosetImage(file, removeBackground);
-    await loadItems();
-    requireElement<HTMLFormElement>("#uploadForm").reset();
-    text("#uploadStatus", "Upload successful.");
+    const normalizedFile = await normalizeImageFile(file);
+    const analysis = await uploadClosetImage(normalizedFile, removeBackground);
+    editingId = null;
+    uploadedImageFile = normalizedFile;
+    setComposerVisible(true);
+    text("#itemFormTitle", "Add New Item");
+    applyAnalysisToForm(analysis);
+    text("#itemImageStatus", `Image ready to save: ${normalizedFile.name}`);
+    text("#uploadStatus", "Analysis complete. Review the fields and save when ready.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed.";
     text("#uploadStatus", `${message} Use manual form instead.`);
@@ -202,11 +237,22 @@ async function uploadImage(event: SubmitEvent): Promise<void> {
 function init(): void {
   requireAuth();
   setActiveNav();
+  setComposerVisible(false);
 
   requireElement<HTMLFormElement>("#itemForm").addEventListener("submit", (event) => {
     void submitItem(event as SubmitEvent);
   });
-  requireElement<HTMLButtonElement>("#itemReset").addEventListener("click", () => resetForm());
+  requireElement<HTMLButtonElement>("#itemReset").addEventListener("click", () => {
+    resetForm();
+    setComposerVisible(false);
+  });
+  requireElement<HTMLButtonElement>("#toggleComposerBtn").addEventListener("click", () => {
+    const isHidden = requireElement<HTMLElement>("#closetComposer").classList.contains("is-hidden");
+    setComposerVisible(isHidden);
+    if (!isHidden) {
+      resetForm();
+    }
+  });
   requireElement<HTMLFormElement>("#uploadForm").addEventListener("submit", (event) => {
     void uploadImage(event as SubmitEvent);
   });

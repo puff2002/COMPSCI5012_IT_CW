@@ -1,6 +1,11 @@
-import { recommend } from "../api.js";
+import { recommend, simulateOutfitImage } from "../api.js";
 import { requireAuth } from "../auth.js";
-import { formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
+import { badge, formatDate, html, requireElement, text, toggleDisabled } from "../ui.js";
+import type { ClothingItem, RecommendationResponse } from "../types.js";
+
+const PLACEHOLDER_IMAGE = "./assets/img/placeholder-item.svg";
+
+let currentRecommendation: RecommendationResponse | null = null;
 
 function setActiveNav(): void {
   const current = window.location.pathname.split("/").pop() ?? "ootd.html";
@@ -27,10 +32,75 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
   });
 }
 
+function renderSeasonBadges(seasons: string[]): void {
+  if (seasons.length === 0) {
+    html("#seasonBadges", "");
+    return;
+  }
+  html("#seasonBadges", seasons.map((season) => badge(season, "ok")).join(""));
+}
+
+function renderItemCard(label: string, item: ClothingItem | null): string {
+  if (!item) {
+    return `
+      <article class="ootd-item">
+        <div class="ootd-item-media">
+          <img src="${PLACEHOLDER_IMAGE}" alt="${label} placeholder" loading="lazy">
+        </div>
+        <div class="ootd-item-body">
+          <p class="eyebrow">${label}</p>
+          <h4>Not selected</h4>
+          <p class="ootd-item-meta">No suitable item was picked for this slot.</p>
+        </div>
+      </article>
+    `;
+  }
+
+  const image = item.image_url || PLACEHOLDER_IMAGE;
+  const description = item.description || "No description provided.";
+  return `
+    <article class="ootd-item">
+      <div class="ootd-item-media">
+        <img src="${image}" alt="${item.item}" loading="lazy">
+      </div>
+      <div class="ootd-item-body">
+        <p class="eyebrow">${label}</p>
+        <h4>${item.item}</h4>
+        <p>${description}</p>
+        <p class="ootd-item-meta">${badge(item.category)} ${badge(item.color_semantics || "unknown", "warn")}</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderRecommendation(data: RecommendationResponse): void {
+  const { outfit, weather, history, seasons } = data;
+  currentRecommendation = data;
+
+  text("#weatherText", `${weather.location} · ${weather.temperature}°C · ${weather.condition}`);
+  text("#recommendText", outfit.recommendation_text || "No recommendation text returned.");
+  text("#outfitCreated", formatDate(outfit.created_at));
+  text("#historyMeta", `History entry #${history.id}`);
+  renderSeasonBadges(seasons);
+  html(
+    "#ootdItemGrid",
+    [
+      renderItemCard("Top", outfit.top_detail),
+      renderItemCard("Bottom", outfit.bottom_detail),
+      renderItemCard("Shoes", outfit.shoes_detail)
+    ].join("")
+  );
+  text("#previewStatus", "Preview ready. Use the button above to generate a simulated outfit image.");
+  requireElement<HTMLImageElement>("#outfitPreviewImage").src = PLACEHOLDER_IMAGE;
+  requireElement<HTMLImageElement>("#outfitPreviewImage").alt = "Generated outfit preview placeholder";
+  toggleDisabled("#simulateBtn", false);
+}
+
 async function generate(event?: SubmitEvent): Promise<void> {
   event?.preventDefault();
 
   toggleDisabled("#recommendBtn", true);
+  toggleDisabled("#simulateBtn", true);
   text("#ootdStatus", "Getting your current location...");
 
   try {
@@ -38,33 +108,57 @@ async function generate(event?: SubmitEvent): Promise<void> {
     text("#ootdStatus", "Generating recommendation...");
 
     const data = await recommend(position.coords.latitude, position.coords.longitude);
-    const top = data.outfit.top_detail?.item ?? "None";
-    const bottom = data.outfit.bottom_detail?.item ?? "None";
-    const shoes = data.outfit.shoes_detail?.item ?? "None";
-
-    text("#weatherText", `${data.weather.location}: ${data.weather.temperature}°C, ${data.weather.condition}`);
-    text("#recommendText", data.outfit.recommendation_text || "No recommendation text returned.");
-    html("#outfitItems", `
-      <li>Top: ${top}</li>
-      <li>Bottom: ${bottom}</li>
-      <li>Shoes: ${shoes}</li>
-      <li>Created: ${formatDate(data.outfit.created_at)}</li>
-      <li>History entry id: ${data.history.id}</li>
-    `);
+    renderRecommendation(data);
     text("#ootdStatus", "Recommendation generated and history was auto-created.");
   } catch (error) {
+    currentRecommendation = null;
     const message = error instanceof Error ? error.message : "Recommendation failed.";
     text("#ootdStatus", message);
+    text("#previewStatus", "Generate an outfit first, then create a simulated preview image.");
+    renderSeasonBadges([]);
+    text("#weatherText", "");
+    text("#recommendText", "Generate an outfit to see the weather-aware recommendation.");
+    text("#outfitCreated", "Not generated yet");
+    text("#historyMeta", "No record yet");
+    html("#ootdItemGrid", "<article class=\"ootd-item empty-state-card\"><p class=\"muted\">No outfit selected yet.</p></article>");
   } finally {
     toggleDisabled("#recommendBtn", false);
+  }
+}
+
+async function generateSimulation(): Promise<void> {
+  const outfitId = currentRecommendation?.outfit.id;
+  if (!outfitId) {
+    text("#previewStatus", "Generate an outfit before requesting an image preview.");
+    return;
+  }
+
+  toggleDisabled("#simulateBtn", true);
+  text("#previewStatus", "Generating simulated outfit image...");
+
+  try {
+    const preview = await simulateOutfitImage(outfitId);
+    const image = requireElement<HTMLImageElement>("#outfitPreviewImage");
+    image.src = preview.image_url;
+    image.alt = `Simulated preview for outfit #${preview.outfit_id}`;
+    text("#previewStatus", "Preview generated. You can regenerate it if you want another simulation.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Preview generation failed.";
+    text("#previewStatus", message);
+  } finally {
+    toggleDisabled("#simulateBtn", false);
   }
 }
 
 function init(): void {
   requireAuth();
   setActiveNav();
+  requireElement<HTMLButtonElement>("#simulateBtn").disabled = true;
   requireElement<HTMLFormElement>("#locationForm").addEventListener("submit", (event) => {
     void generate(event as SubmitEvent);
+  });
+  requireElement<HTMLButtonElement>("#simulateBtn").addEventListener("click", () => {
+    void generateSimulation();
   });
 }
 

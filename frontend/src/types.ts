@@ -82,3 +82,11 @@ export interface RecommendationResponse {
   outfit: Outfit;
   history: OutfitHistory;
 }
+
+export interface OutfitSimulationResponse {
+  outfit_id: number;
+  prompt: string;
+  image_url: string;
+  weather: WeatherNow;
+  seasons: string[];
+}

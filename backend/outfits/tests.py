@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from outfits.models import Outfit, OutfitHistory
+from outfits.models import Outfit, OutfitHistory, WeatherSnapshot
 from services.weather import WeatherInfo
 from wardrobe.models import ClothingItem
 
@@ -45,6 +45,16 @@ class OutfitRecommendationTests(APITestCase):
             color_semantics="neutral",
             description="Straight-fit chinos",
         )
+        self.shoes = ClothingItem.objects.create(
+            owner=self.user,
+            category="shoes",
+            item="Leather Loafers",
+            style_semantics=["smart-casual"],
+            season_semantics=["spring"],
+            usage_semantics=["work"],
+            color_semantics="brown",
+            description="Polished leather loafers",
+        )
         self.cold_top = ClothingItem.objects.create(
             owner=self.user,
             category="top",
@@ -73,7 +83,7 @@ class OutfitRecommendationTests(APITestCase):
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
     def test_recommend_returns_outfit_and_history(self, mock_recommendation: AsyncMock, mock_get_weather: AsyncMock):
         mock_get_weather.return_value = self._weather()
-        mock_recommendation.return_value = "Wear the Oxford Shirt with the Chinos."
+        mock_recommendation.return_value = "Wear the Oxford Shirt with the Chinos and loafers."
 
         response = self.client.post(
             "/api/outfits/recommend/",
@@ -83,9 +93,10 @@ class OutfitRecommendationTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["outfit"]["recommendation_text"], "Wear the Oxford Shirt with the Chinos.")
+        self.assertEqual(response.data["outfit"]["recommendation_text"], "Wear the Oxford Shirt with the Chinos and loafers.")
         self.assertEqual(response.data["outfit"]["top"], self.top.id)
         self.assertEqual(response.data["outfit"]["bottom"], self.bottom.id)
+        self.assertEqual(response.data["outfit"]["shoes"], self.shoes.id)
         self.assertEqual(Outfit.objects.count(), 1)
         self.assertEqual(OutfitHistory.objects.count(), 1)
         args = mock_recommendation.await_args.args
@@ -93,6 +104,7 @@ class OutfitRecommendationTests(APITestCase):
         self.assertEqual(args[2][0]["item"], "Oxford Shirt")
         self.assertEqual(args[2][0]["category"], "top")
         self.assertEqual(args[3][0]["item"], "Chinos")
+        self.assertEqual(args[4][0]["item"], "Leather Loafers")
 
     @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
@@ -125,8 +137,10 @@ class OutfitRecommendationTests(APITestCase):
         args = mock_recommendation.await_args.args
         top_items = args[2]
         bottom_items = args[3]
+        shoe_items = args[4]
         self.assertEqual({item["item"] for item in top_items}, {"Heavy Knit"})
         self.assertEqual({item["item"] for item in bottom_items}, {"Chinos"})
+        self.assertEqual({item["item"] for item in shoe_items}, {"Leather Loafers"})
 
     @patch("outfits.views.get_weather_by_coordinates", new_callable=AsyncMock)
     @patch("outfits.views.get_llm_recommendation", new_callable=AsyncMock)
@@ -168,3 +182,90 @@ class OutfitRecommendationTests(APITestCase):
         self.assertEqual(response.data["detail"], "recommendation unavailable")
         self.assertEqual(Outfit.objects.count(), 0)
         self.assertEqual(OutfitHistory.objects.count(), 0)
+
+    def test_simulate_image_returns_400_without_weather_snapshot(self):
+        outfit = Outfit.objects.create(
+            user=self.user,
+            top=self.top,
+            bottom=self.bottom,
+            shoes=self.shoes,
+            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            weather=None,
+        )
+        outfit.weather_id = None
+        outfit.save(update_fields=["weather"])
+        response = self.client.post(
+            f"/api/outfits/{outfit.id}/simulate-image/",
+            format="json",
+            **self.auth_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "weather unavailable for outfit")
+
+    @patch("outfits.views.generate_image", new_callable=AsyncMock)
+    def test_simulate_image_returns_preview_when_generation_succeeds(self, mock_generate_image: AsyncMock):
+        weather = WeatherSnapshot.objects.create(
+            location="Melbourne, Victoria, Australia",
+            temperature=18.0,
+            feels_like=17.0,
+            condition="Partly cloudy",
+            icon="102",
+            humidity=60.0,
+            wind_dir="SE",
+            wind_scale="3",
+            obs_time="2026-03-11T10:00",
+            raw=self._weather().model_dump(),
+        )
+        outfit = Outfit.objects.create(
+            user=self.user,
+            top=self.top,
+            bottom=self.bottom,
+            shoes=self.shoes,
+            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            weather=weather,
+        )
+        mock_generate_image.return_value = b"fake-image-bytes"
+
+        response = self.client.post(
+            f"/api/outfits/{outfit.id}/simulate-image/",
+            format="json",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["outfit_id"], outfit.id)
+        self.assertIn("Oxford Shirt", response.data["prompt"])
+        self.assertTrue(response.data["image_url"].startswith("data:image/png;base64,"))
+
+    @patch("outfits.views.generate_image", new_callable=AsyncMock)
+    def test_simulate_image_returns_503_when_generation_fails(self, mock_generate_image: AsyncMock):
+        weather = WeatherSnapshot.objects.create(
+            location="Melbourne, Victoria, Australia",
+            temperature=18.0,
+            feels_like=17.0,
+            condition="Partly cloudy",
+            icon="102",
+            humidity=60.0,
+            wind_dir="SE",
+            wind_scale="3",
+            obs_time="2026-03-11T10:00",
+            raw=self._weather().model_dump(),
+        )
+        outfit = Outfit.objects.create(
+            user=self.user,
+            top=self.top,
+            bottom=self.bottom,
+            shoes=self.shoes,
+            recommendation_text="Wear the Oxford Shirt with the Chinos and loafers.",
+            weather=weather,
+        )
+        mock_generate_image.side_effect = ValueError("provider down")
+
+        response = self.client.post(
+            f"/api/outfits/{outfit.id}/simulate-image/",
+            format="json",
+            **self.auth_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(response.data["detail"], "outfit image generation unavailable")

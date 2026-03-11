@@ -146,6 +146,41 @@ async def edit_image_remove_background(image_bytes: bytes, mime_type: str = "ima
         raise ValueError("Failed to decode edited image output") from exc
 
 
+async def generate_image(prompt: str, size: str = "1024x1024") -> bytes:
+    payload = {
+        "model": _resolve_image_model_name(),
+        "prompt": prompt,
+        "size": size,
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            f"{_resolve_api_base()}/images/generations",
+            headers=_headers(_resolve_api_key()),
+            json=payload,
+        )
+
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        detail = exc.response.text.strip()
+        raise ValueError(f"Image generation request failed: {exc.response.status_code} {detail}") from exc
+
+    data = response.json()
+    items = data.get("data")
+    if not isinstance(items, list) or not items:
+        raise ValueError("Image generation response did not include any outputs")
+
+    encoded_image = items[0].get("b64_json")
+    if not isinstance(encoded_image, str) or not encoded_image.strip():
+        raise ValueError("Image generation response did not include b64_json output")
+
+    try:
+        return base64.b64decode(encoded_image)
+    except Exception as exc:
+        raise ValueError("Failed to decode generated image output") from exc
+
+
 async def analyze_clothes(image_bytes: bytes, mime_type: str = "image/png") -> ClothesSemantics:
     encoded = base64.b64encode(image_bytes).decode("utf-8")
     content = [

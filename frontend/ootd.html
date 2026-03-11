@@ -28,24 +28,68 @@
       <header class="page-header">
         <h2>OOTD Generator</h2>
       </header>
-      <section class="panel">
-        <h3>Location</h3>
-        <form id="locationForm" class="form-row">
-          <div class="form-field">
-            <p class="status-line">Use your browser's current GPS location to fetch live weather.</p>
-          </div>
-          <div class="form-field form-submit-field">
-            <button id="recommendBtn" class="btn btn-primary" type="submit">Generate OOTD</button>
-          </div>
+      <section class="panel ootd-hero">
+        <div>
+          <p class="eyebrow">Weather-aware outfit planning</p>
+          <h3>Build an outfit from your wardrobe, then simulate the final look.</h3>
+          <p class="muted">Generate a recommendation from your current location, review the selected pieces, and ask the LLM to produce a styled preview image.</p>
+        </div>
+        <form id="locationForm" class="ootd-actions">
+          <button id="recommendBtn" class="btn btn-primary" type="submit">Generate OOTD</button>
+          <button id="simulateBtn" class="btn btn-secondary" type="button" disabled>Generate Outfit Preview</button>
         </form>
         <p id="ootdStatus" class="status-line" aria-live="polite"></p>
-        <p id="weatherText" class="status-line"></p>
+      </section>
+
+      <section class="ootd-layout">
+        <section class="panel ootd-summary">
+          <div class="ootd-panel-header">
+            <div>
+              <p class="eyebrow">Current conditions</p>
+              <h3>Recommendation Summary</h3>
+            </div>
+            <p id="weatherText" class="status-line"></p>
+          </div>
+          <div id="seasonBadges" class="badge-row" aria-label="Recommended seasons"></div>
+          <p id="recommendText" class="recommend-copy">Generate an outfit to see the weather-aware recommendation.</p>
+          <dl class="ootd-meta">
+            <div>
+              <dt>Created</dt>
+              <dd id="outfitCreated">Not generated yet</dd>
+            </div>
+            <div>
+              <dt>History</dt>
+              <dd id="historyMeta">No record yet</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="panel ootd-preview-panel">
+          <div class="ootd-panel-header">
+            <div>
+              <p class="eyebrow">LLM preview</p>
+              <h3>Simulated Outfit Image</h3>
+            </div>
+          </div>
+          <figure class="ootd-preview-frame">
+            <img id="outfitPreviewImage" src="./assets/img/placeholder-item.svg" alt="Generated outfit preview placeholder">
+          </figure>
+          <p id="previewStatus" class="status-line">Generate an outfit first, then create a simulated preview image.</p>
+        </section>
       </section>
 
       <section class="panel">
-        <h3>Recommendation</h3>
-        <p id="recommendText" class="status-line"></p>
-        <ul id="outfitItems" class="outfit-items recommendation-list"></ul>
+        <div class="ootd-panel-header">
+          <div>
+            <p class="eyebrow">Selected wardrobe pieces</p>
+            <h3>Outfit Breakdown</h3>
+          </div>
+        </div>
+        <section id="ootdItemGrid" class="ootd-item-grid" aria-label="Recommended outfit items">
+          <article class="ootd-item empty-state-card">
+            <p class="muted">No outfit selected yet.</p>
+          </article>
+        </section>
       </section>
     </main>
   </div>

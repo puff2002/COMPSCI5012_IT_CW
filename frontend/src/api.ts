@@ -6,6 +6,7 @@ import type {
   ClothingAnalysis,
   ClothingItem,
   OutfitHistory,
+  OutfitSimulationResponse,
   RecommendationResponse,
   User,
   WeatherNow
@@ -199,6 +200,13 @@ export async function recommend(latitude: number, longitude: number): Promise<Re
     body: JSON.stringify({ latitude, longitude })
   });
   return parseJson<RecommendationResponse>(response);
+}
+
+export async function simulateOutfitImage(outfitId: number): Promise<OutfitSimulationResponse> {
+  const response = await request(`/outfits/${outfitId}/simulate-image/`, {
+    method: "POST"
+  });
+  return parseJson<OutfitSimulationResponse>(response);
 }
 
 export async function getHistory(): Promise<OutfitHistory[]> {

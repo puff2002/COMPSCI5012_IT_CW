@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from django.contrib.auth import get_user_model
 from rest_framework import status

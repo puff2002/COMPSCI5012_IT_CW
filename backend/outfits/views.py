@@ -11,7 +11,7 @@ from services.recommendation import (
 from services.weather import get_season_from_weather, get_weather_by_coordinates
 from wardrobe.models import ClothingItem
 
-from .models import Outfit, OutfitHistory
+from .models import Outfit, OutfitHistory, WeatherSnapshot
 from .serializers import OutfitHistorySerializer, OutfitSerializer
 
 
